@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Literal, Union
+from typing import Annotated, Any, Literal, TypeAlias, Union
 
 from pydantic import Field
 
@@ -117,7 +117,6 @@ class NodeConfig(RivetModel):
 
 
 class BaseNodeData(RivetModel):
-    type: NodeType
     config: NodeConfig = Field(default_factory=NodeConfig)
     label: str | None = None
     description: str | None = None
@@ -131,7 +130,7 @@ class AgentCondition(RivetModel):
 
 
 class TriggerNodeData(BaseNodeData):
-    type: Literal[NodeType.TRIGGER]
+    type: Literal["trigger"]
     trigger_source: TriggerSource
     event_name: str
     schedule: str | None = None
@@ -139,7 +138,7 @@ class TriggerNodeData(BaseNodeData):
 
 
 class AgentNodeData(BaseNodeData):
-    type: Literal[NodeType.AGENT]
+    type: Literal["agent"]
     role: str
     model: str
     system_prompt: str
@@ -149,14 +148,14 @@ class AgentNodeData(BaseNodeData):
 
 
 class PromptNodeData(BaseNodeData):
-    type: Literal[NodeType.PROMPT]
+    type: Literal["prompt"]
     prompt_template: str
     input_variables: list[str] = Field(default_factory=list)
     output_key: str
 
 
 class KnowledgeNodeData(BaseNodeData):
-    type: Literal[NodeType.KNOWLEDGE]
+    type: Literal["knowledge"]
     source_type: KnowledgeSourceType
     source_name: str
     retrieval_mode: RetrievalMode
@@ -164,7 +163,7 @@ class KnowledgeNodeData(BaseNodeData):
 
 
 class IntegrationNodeData(BaseNodeData):
-    type: Literal[NodeType.INTEGRATION]
+    type: Literal["integration"]
     app_type: ThirdPartyAppType
     app_name: str
     action: str
@@ -173,7 +172,7 @@ class IntegrationNodeData(BaseNodeData):
 
 
 class ToolNodeData(BaseNodeData):
-    type: Literal[NodeType.TOOL]
+    type: Literal["tool"]
     tool_type: ToolType
     endpoint: str | None = None
     action: str
@@ -182,27 +181,28 @@ class ToolNodeData(BaseNodeData):
 
 
 class MemoryNodeData(BaseNodeData):
-    type: Literal[NodeType.MEMORY]
+    type: Literal["memory"]
     memory_scope: MemoryScope
     strategy: MemoryStrategy
     max_items: int
 
 
 class ApprovalNodeData(BaseNodeData):
-    type: Literal[NodeType.APPROVAL]
+    type: Literal["approval"]
     approver_type: ApproverType
     instructions: str
     timeout_minutes: int
 
 
 class OutputNodeData(BaseNodeData):
-    type: Literal[NodeType.OUTPUT]
+    type: Literal["output"]
     output_type: OutputType
     destination: str
     format: str
 
 
-NodeData = Union[
+NodeData: TypeAlias = Annotated[
+    Union[
     TriggerNodeData,
     AgentNodeData,
     PromptNodeData,
@@ -212,13 +212,15 @@ NodeData = Union[
     MemoryNodeData,
     ApprovalNodeData,
     OutputNodeData,
+    ],
+    Field(discriminator="type"),
 ]
 
 
 class WorkflowNode(RivetModel):
     id: str
     position: Position
-    data: NodeData = Field(discriminator="type")
+    data: NodeData
 
 
 class EdgeData(RivetModel):
