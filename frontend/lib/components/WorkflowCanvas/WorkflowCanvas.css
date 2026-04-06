@@ -1,0 +1,118 @@
+.workflow-canvas {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.08) 1px,
+      rgba(0, 0, 0, 0.02) 1px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #9cb5a8 0%, #7e9b8d 100%);
+  box-shadow:
+    inset 2px 2px 0 #d8e5dc,
+    inset -2px -2px 0 #44584f;
+}
+
+.workflow-canvas .react-flow {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.02));
+}
+
+.workflow-canvas.executing {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.custom-node {
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.custom-node:hover {
+  transform: translate(-1px, -1px);
+  filter: brightness(1.03);
+}
+
+.custom-node.selected {
+  transform: translate(-1px, -1px);
+}
+
+.custom-node.invalid {
+  border-color: #71291f !important;
+  background-color: #d68b77;
+}
+
+.react-flow__controls {
+  bottom: 20px;
+  left: 20px;
+  border: 2px solid #24211a;
+  box-shadow:
+    inset 2px 2px 0 #f6f1de,
+    inset -2px -2px 0 #7d7666;
+  overflow: hidden;
+}
+
+.react-flow__minimap {
+  bottom: 20px;
+  right: 20px;
+  border: 2px solid #24211a !important;
+  background: #d8d1bb !important;
+  box-shadow:
+    inset 2px 2px 0 #f6f1de,
+    inset -2px -2px 0 #7d7666;
+}
+
+.react-flow__attribution {
+  background: #d8d1bb;
+  padding: 2px 6px;
+  border: 1px solid #24211a;
+  font-size: 10px;
+}
+
+.react-flow__handle {
+  border: 2px solid #f7f2df;
+  transition: all 0.2s ease;
+}
+
+.react-flow__handle:hover {
+  transform: scale(1.2);
+}
+
+.react-flow__handle-connecting {
+  background: #d18e3b !important;
+}
+
+.react-flow__edge-path {
+  stroke: #384f46;
+  stroke-width: 3;
+  stroke-linecap: square;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #d9893d;
+  stroke-width: 4;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #d9893d;
+  stroke-width: 4;
+}
+
+.react-flow__controls-button {
+  background: linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%) !important;
+  border-bottom: 2px solid #24211a !important;
+  color: #171716 !important;
+  box-shadow:
+    inset 1px 1px 0 #f6f1de,
+    inset -1px -1px 0 #7d7666;
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+.react-flow__background pattern circle {
+  fill: rgba(43, 57, 51, 0.35);
+}
