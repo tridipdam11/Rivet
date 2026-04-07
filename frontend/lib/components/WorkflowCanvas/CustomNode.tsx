@@ -400,15 +400,16 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
     <div
       className={`custom-node ${selected ? 'selected' : ''} ${!isValid ? 'invalid' : ''}`}
       style={{
-        background: 'linear-gradient(180deg, #ece4cf 0%, #c9c1aa 100%)',
+        background: `linear-gradient(135deg, ${appearance.color}22 0%, transparent 34%), linear-gradient(180deg, #efe7d3 0%, #c9c1aa 100%)`,
         border: `2px solid ${selected ? '#d9893d' : '#24211a'}`,
         padding: '14px',
         minWidth: '220px',
         boxShadow:
           selected
-            ? 'inset 2px 2px 0 #fff8e8, inset -2px -2px 0 #7d7666, 0 0 0 2px rgba(217,137,61,0.35)'
-            : 'inset 2px 2px 0 #f6f1de, inset -2px -2px 0 #7d7666',
+            ? 'inset 2px 2px 0 #fff8e8, inset -2px -2px 0 #7d7666, 0 0 0 2px rgba(217,137,61,0.35), 5px 5px 0 rgba(23,23,22,0.14)'
+            : 'inset 2px 2px 0 #f6f1de, inset -2px -2px 0 #7d7666, 4px 4px 0 rgba(23,23,22,0.1)',
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
       <Handle
@@ -428,7 +429,7 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
             width: '40px',
             height: '40px',
             border: '2px solid #24211a',
-            background: '#f4efd9',
+            background: `linear-gradient(180deg, #fff8e8 0%, ${appearance.color}22 100%)`,
             color: appearance.color,
             display: 'flex',
             alignItems: 'center',
@@ -437,7 +438,7 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
             fontWeight: 800,
             letterSpacing: '0.08em',
             flexShrink: 0,
-            boxShadow: 'inset 1px 1px 0 #fffdf2, inset -1px -1px 0 #7d7666',
+            boxShadow: 'inset 1px 1px 0 #fffdf2, inset -1px -1px 0 #7d7666, 2px 2px 0 rgba(23,23,22,0.08)',
           }}
         >
           {appearance.badge}
@@ -500,12 +501,13 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
           ) : (
             <>
               <div
-                style={{
+              style={{
                   fontWeight: 700,
                   fontSize: '15px',
                   color: '#171716',
                   marginBottom: '4px',
                   textTransform: 'uppercase',
+                  textShadow: '1px 1px 0 rgba(255, 248, 232, 0.35)',
                 }}
               >
                 {nodeData.label || nodeData.type.replace(/_/g, ' ')}

@@ -3,6 +3,8 @@
   width: 100%;
   position: relative;
   background:
+    radial-gradient(circle at top left, rgba(233, 248, 238, 0.25), transparent 24%),
+    radial-gradient(circle at 82% 22%, rgba(255, 214, 153, 0.2), transparent 20%),
     repeating-linear-gradient(
       0deg,
       rgba(255, 255, 255, 0.08),
@@ -10,10 +12,18 @@
       rgba(0, 0, 0, 0.02) 1px,
       rgba(0, 0, 0, 0.02) 3px
     ),
-    linear-gradient(180deg, #9cb5a8 0%, #7e9b8d 100%);
+    linear-gradient(180deg, #9fb9ab 0%, #7f9b8e 52%, #698276 100%);
   box-shadow:
     inset 2px 2px 0 #d8e5dc,
     inset -2px -2px 0 #44584f;
+}
+
+.workflow-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(36, 33, 26, 0.3);
+  pointer-events: none;
 }
 
 .workflow-canvas .react-flow {
@@ -31,12 +41,12 @@
 }
 
 .custom-node:hover {
-  transform: translate(-1px, -1px);
+  transform: translate(-2px, -2px);
   filter: brightness(1.03);
 }
 
 .custom-node.selected {
-  transform: translate(-1px, -1px);
+  transform: translate(-2px, -2px);
 }
 
 .custom-node.invalid {
@@ -65,10 +75,7 @@
 }
 
 .react-flow__attribution {
-  background: #d8d1bb;
-  padding: 2px 6px;
-  border: 1px solid #24211a;
-  font-size: 10px;
+  display: none !important;
 }
 
 .react-flow__handle {
@@ -85,9 +92,12 @@
 }
 
 .react-flow__edge-path {
-  stroke: #384f46;
+  stroke: #355248;
   stroke-width: 3;
+  stroke-dasharray: 10 8;
   stroke-linecap: square;
+  filter: drop-shadow(2px 2px 0 rgba(23, 23, 22, 0.15));
+  animation: retro-edge-flow 0.8s linear infinite;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
@@ -114,5 +124,15 @@
 }
 
 .react-flow__background pattern circle {
-  fill: rgba(43, 57, 51, 0.35);
+  fill: rgba(43, 57, 51, 0.28);
+}
+
+@keyframes retro-edge-flow {
+  from {
+    stroke-dashoffset: 18;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
 }

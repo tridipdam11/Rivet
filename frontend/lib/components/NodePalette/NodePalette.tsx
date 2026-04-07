@@ -105,10 +105,16 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ className = '' }) => {
             draggable
             onDragStart={(event) => onDragStart(event, nodeType.type)}
             style={{
-              borderColor: `${nodeType.color}33`,
+              borderColor: '#24211a',
             }}
           >
-            <div className="node-palette-item-icon" style={{ color: nodeType.color }}>
+            <div
+              className="node-palette-item-icon"
+              style={{
+                color: nodeType.color,
+                boxShadow: `inset 1px 1px 0 #fffdf2, inset -1px -1px 0 #7d7666, 0 0 0 2px ${nodeType.color}20`,
+              }}
+            >
               {nodeType.icon}
             </div>
             <div className="node-palette-item-content">

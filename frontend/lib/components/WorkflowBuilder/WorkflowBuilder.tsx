@@ -69,22 +69,34 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
       <NodePalette className="shrink-0" />
       <div className="mt-3 flex min-h-0 flex-1 overflow-hidden">
         <div className="retro-window relative min-w-0 flex-1 overflow-hidden">
-          <div className="absolute left-4 top-4 z-10 retro-window max-w-md px-4 py-3">
-            <div className="retro-label text-[#0c4a4d]">Pipeline</div>
-            <div className="mt-2 text-sm font-medium text-[#1b1916]">
-              Build and edit your workflow pipeline on the canvas.
+          <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-between gap-4">
+            <div className="retro-window max-w-lg px-4 py-3">
+              <div className="retro-label text-[#0c4a4d]">Pipeline</div>
+              <div className="mt-2 text-sm font-medium text-[#1b1916]">
+                Build and edit your workflow pipeline on the canvas.
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <div className="retro-badge">
+                  <span className="retro-badge-dot" />
+                  {workflow.nodes.length} nodes
+                </div>
+                <div className="retro-badge">
+                  <span className="retro-badge-dot bg-[#2f8f94]" />
+                  {workflow.edges.length} links
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="absolute right-4 top-4 z-10">
-            <button
-              type="button"
-              onClick={handleClearCanvas}
-              disabled={workflow.nodes.length === 0}
-              className="retro-button px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Clear canvas
-            </button>
+            <div className="flex flex-col items-end gap-2">
+              <button
+                type="button"
+                onClick={handleClearCanvas}
+                disabled={workflow.nodes.length === 0}
+                className="retro-button px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Clear canvas
+              </button>
+            </div>
           </div>
 
           <WorkflowCanvas
@@ -95,10 +107,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
           />
         </div>
 
-        <aside className="ml-3 w-80 shrink-0 border-2 border-[#24211a] bg-[linear-gradient(180deg,#d8d1bb_0%,#c6bea8_100%)] shadow-[inset_2px_2px_0_#f6f1de,inset_-2px_-2px_0_#7d7666,6px_6px_0_rgba(23,23,22,0.35)]">
+        <aside className="ml-3 w-80 shrink-0 border-2 border-[#24211a] bg-[linear-gradient(180deg,rgba(255,247,225,0.25)_0%,transparent_18%),linear-gradient(180deg,#d8d1bb_0%,#c6bea8_100%)] shadow-[inset_2px_2px_0_#f6f1de,inset_-2px_-2px_0_#7d7666,6px_6px_0_rgba(23,23,22,0.35)]">
           {selectedNode ? (
             <div className="h-full overflow-y-auto p-4">
-              <div className="mb-4 border-2 border-[#24211a] bg-[linear-gradient(180deg,#0f5759_0%,#08373a_100%)] px-3 py-3 text-[#f7f2df] shadow-[inset_1px_1px_0_rgba(255,255,255,0.2),inset_-1px_-1px_0_rgba(0,0,0,0.35)]">
+              <div className="mb-4 border-2 border-[#24211a] bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_0%,transparent_38%),linear-gradient(180deg,#0f5759_0%,#08373a_100%)] px-3 py-3 text-[#f7f2df] shadow-[inset_1px_1px_0_rgba(255,255,255,0.2),inset_-1px_-1px_0_rgba(0,0,0,0.35)]">
                 <div className="retro-label text-[#f2e7b8]">Selected node</div>
                 <h2 className="retro-display mt-3 text-base font-semibold leading-6 text-[#fff8e8]">
                   {selectedNode.data.label || selectedNode.data.type}
@@ -142,6 +154,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+              <div className="retro-badge">
+                <span className="retro-badge-dot bg-[#2b62b7]" />
+                Drag a block to begin
+              </div>
               <div className="text-sm text-[#444039]">
                 Select a block to inspect its agent configuration, app connection settings, tool actions, or delivery details.
               </div>

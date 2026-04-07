@@ -47,6 +47,13 @@ const nodeTypes: NodeTypes = {
   [NodeType.OUTPUT]: CustomNode,
 };
 
+const animatedEdgeStyle = {
+  stroke: '#355248',
+  strokeWidth: 3,
+  strokeDasharray: '10 8',
+  strokeLinecap: 'square' as const,
+};
+
 interface WorkflowCanvasProps {
   workflow: Workflow;
   onWorkflowChange?: (workflow: Workflow) => void;
@@ -98,6 +105,12 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       sourceHandle: edge.sourceHandle,
       targetHandle: edge.targetHandle,
       type: edge.type,
+      animated: true,
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: '#355248',
+      },
+      style: animatedEdgeStyle,
       data: edge.data,
     };
   }, []);
@@ -200,7 +213,21 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => {
-      setEdges((eds) => addEdge({ ...connection, type: 'smoothstep' }, eds));
+      setEdges((eds) =>
+        addEdge(
+          {
+            ...connection,
+            type: 'smoothstep',
+            animated: true,
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: '#355248',
+            },
+            style: animatedEdgeStyle,
+          },
+          eds
+        )
+      );
 
       if (onWorkflowChange) {
         const newWorkflowEdge: WorkflowEdge = {
@@ -360,18 +387,16 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         onDragOver={handleDragOver}
         nodeTypes={nodeTypes}
         fitView
-        attributionPosition="top-right"
+        proOptions={{ hideAttribution: true }}
         className={isExecuting ? 'executing' : ''}
         defaultEdgeOptions={{
           type: 'smoothstep',
+          animated: true,
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: '#64748b',
+            color: '#355248',
           },
-          style: {
-            stroke: '#64748b',
-            strokeWidth: 2,
-          },
+          style: animatedEdgeStyle,
         }}
       >
         <Controls />
