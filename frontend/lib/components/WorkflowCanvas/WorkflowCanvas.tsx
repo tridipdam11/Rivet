@@ -20,6 +20,9 @@ import {
   NodeTypes,
   NodeMouseHandler,
   MarkerType,
+  Panel,
+  SelectionMode,
+  OnSelectionChangeFunc,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -57,7 +60,7 @@ const animatedEdgeStyle = {
 interface WorkflowCanvasProps {
   workflow: Workflow;
   onWorkflowChange?: (workflow: Workflow) => void;
-  onNodeSelect?: (node: WorkflowNode) => void;
+  onNodeSelect?: (node: WorkflowNode | null) => void;
   isExecuting?: boolean;
   className?: string;
 }
@@ -71,6 +74,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
 }) => {
   const nodeFactory = NodeFactory.getInstance();
   const [editingNodeId, setEditingNodeId] = React.useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = React.useState<SelectionMode>(SelectionMode.Partial);
 
   const applyNodeDataUpdates = useCallback(
     (node: WorkflowNode, updates: Partial<WorkflowNode['data']>): WorkflowNode =>
@@ -207,6 +211,20 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     (_, node) => {
       onNodeSelect?.(toWorkflowNode(node));
       setEditingNodeId(null);
+    },
+    [onNodeSelect, toWorkflowNode]
+  );
+
+  const handleSelectionChange: OnSelectionChangeFunc = useCallback(
+    ({ nodes: selectedNodes }) => {
+      setEditingNodeId(null);
+
+      if (selectedNodes.length === 1) {
+        onNodeSelect?.(toWorkflowNode(selectedNodes[0]));
+        return;
+      }
+
+      onNodeSelect?.(null);
     },
     [onNodeSelect, toWorkflowNode]
   );
@@ -383,12 +401,20 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
         onNodeDragStop={handleNodeDragStop}
+        onSelectionChange={handleSelectionChange}
+        onPaneClick={() => {
+          setEditingNodeId(null);
+          onNodeSelect?.(null);
+        }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         nodeTypes={nodeTypes}
         fitView
         proOptions={{ hideAttribution: true }}
         className={isExecuting ? 'executing' : ''}
+        selectionOnDrag
+        selectionMode={selectionMode}
+        panOnDrag={[2]}
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: true,
@@ -399,6 +425,59 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           style: animatedEdgeStyle,
         }}
       >
+        <Panel position="top-left">
+          <div
+            style={{
+              display: 'inline-flex',
+              gap: '6px',
+              padding: '8px',
+              border: '2px solid #24211a',
+              background: 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
+              boxShadow: 'inset 1px 1px 0 #f6f1de, inset -1px -1px 0 #7d7666',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectionMode(SelectionMode.Partial)}
+              style={{
+                border: '2px solid #24211a',
+                background:
+                  selectionMode === SelectionMode.Partial
+                    ? 'linear-gradient(180deg, #0f5759 0%, #08373a 100%)'
+                    : 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
+                color: selectionMode === SelectionMode.Partial ? '#fff8e8' : '#171716',
+                padding: '6px 8px',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              Partial select
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectionMode(SelectionMode.Full)}
+              style={{
+                border: '2px solid #24211a',
+                background:
+                  selectionMode === SelectionMode.Full
+                    ? 'linear-gradient(180deg, #0f5759 0%, #08373a 100%)'
+                    : 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
+                color: selectionMode === SelectionMode.Full ? '#fff8e8' : '#171716',
+                padding: '6px 8px',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              Whole select
+            </button>
+          </div>
+        </Panel>
         <Controls />
         <MiniMap />
         <Background variant={BackgroundVariant.Dots} gap={18} size={1} color="#cbd5e1" />
