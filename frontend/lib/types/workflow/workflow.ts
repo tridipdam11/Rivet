@@ -88,6 +88,16 @@ export interface Workflow {
   triggers: TriggerConfig[];
 }
 
+export interface WorkflowSummary {
+  id: string;
+  name: string;
+  status: WorkflowStatus;
+  version: number;
+  updatedAt: Date;
+  nodeCount: number;
+  edgeCount: number;
+}
+
 export enum WorkflowStatus {
   DRAFT = 'draft',
   ACTIVE = 'active',

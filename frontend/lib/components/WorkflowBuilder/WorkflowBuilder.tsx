@@ -1,9 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { WorkflowCanvas } from "@/lib/components/WorkflowCanvas/WorkflowCanvas";
 import { NodeFactory } from "@/lib/services/NodeFactory";
-import { NodeType, Workflow, WorkflowNode, WorkflowStatus } from "@/lib/types/workflow";
+import {
+  executeWorkflow,
+  listWorkflows,
+  loadWorkflow,
+  saveWorkflow,
+  validateWorkflow,
+} from "@/lib/services/workflowApi";
+import {
+  ExecutionResult,
+  NodeType,
+  ValidationResult,
+  Workflow,
+  WorkflowNode,
+  WorkflowSummary,
+  WorkflowStatus,
+} from "@/lib/types/workflow";
 import { NodePalette } from "../NodePalette/NodePalette";
 
 interface WorkflowBuilderProps {
@@ -20,9 +35,20 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     initialWorkflow || createDemoWorkflow(nodeFactory)
   );
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+  const [savedWorkflows, setSavedWorkflows] = useState<WorkflowSummary[]>([]);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>("");
+  const [isValidating, setIsValidating] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingWorkflow, setIsLoadingWorkflow] = useState(false);
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
 
   const commitWorkflow = (updatedWorkflow: Workflow) => {
     setWorkflow(updatedWorkflow);
+    setSelectedWorkflowId(updatedWorkflow.id);
     const updatedSelectedNode = selectedNode
       ? updatedWorkflow.nodes.find((node) => node.id === selectedNode.id) ?? null
       : null;
@@ -30,7 +56,32 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     onWorkflowChange?.(updatedWorkflow);
   };
 
+  const refreshSavedWorkflows = async (preferredWorkflowId?: string) => {
+    setIsLoadingCatalog(true);
+
+    try {
+      const workflows = await listWorkflows();
+      setSavedWorkflows(workflows);
+
+      if (preferredWorkflowId) {
+        setSelectedWorkflowId(preferredWorkflowId);
+      } else if (workflows.length > 0 && !selectedWorkflowId) {
+        setSelectedWorkflowId(workflows[0].id);
+      }
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to load saved workflows.");
+    } finally {
+      setIsLoadingCatalog(false);
+    }
+  };
+
+  useEffect(() => {
+    void refreshSavedWorkflows(workflow.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleWorkflowChange = (updatedWorkflow: Workflow) => {
+    setRequestError(null);
     commitWorkflow(updatedWorkflow);
   };
 
@@ -53,6 +104,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   };
 
   const handleClearCanvas = () => {
+    setValidationResult(null);
+    setExecutionResult(null);
+    setRequestError(null);
     commitWorkflow({
       ...workflow,
       nodes: [],
@@ -62,6 +116,77 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         updatedAt: new Date(),
       },
     });
+  };
+
+  const handleValidateWorkflow = async () => {
+    setIsValidating(true);
+    setRequestError(null);
+
+    try {
+      const result = await validateWorkflow(workflow);
+      setValidationResult(result);
+    } catch (error) {
+      setValidationResult(null);
+      setRequestError(error instanceof Error ? error.message : "Failed to validate workflow.");
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleExecuteWorkflow = async () => {
+    setIsExecuting(true);
+    setRequestError(null);
+
+    try {
+      const result = await executeWorkflow(workflow);
+      setExecutionResult(result);
+    } catch (error) {
+      setExecutionResult(null);
+      setRequestError(error instanceof Error ? error.message : "Failed to execute workflow.");
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const handleSaveWorkflow = async () => {
+    setIsSaving(true);
+    setRequestError(null);
+
+    try {
+      const persistedWorkflow = await saveWorkflow({
+        ...workflow,
+        metadata: {
+          ...workflow.metadata,
+          updatedAt: new Date(),
+        },
+      });
+      commitWorkflow(persistedWorkflow);
+      await refreshSavedWorkflows(persistedWorkflow.id);
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to save workflow.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLoadWorkflow = async () => {
+    if (!selectedWorkflowId) {
+      return;
+    }
+
+    setIsLoadingWorkflow(true);
+    setRequestError(null);
+
+    try {
+      const loadedWorkflow = await loadWorkflow(selectedWorkflowId);
+      setValidationResult(null);
+      setExecutionResult(null);
+      commitWorkflow(loadedWorkflow);
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to load workflow.");
+    } finally {
+      setIsLoadingWorkflow(false);
+    }
   };
 
   return (
@@ -84,14 +209,81 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                   <span className="retro-badge-dot bg-[#2f8f94]" />
                   {workflow.edges.length} links
                 </div>
+                <div className="retro-badge">
+                  <span className="retro-badge-dot bg-[#2b62b7]" />
+                  {workflow.id}
+                </div>
               </div>
             </div>
 
             <div className="flex flex-col items-end gap-2">
+              <div className="retro-window flex w-72 flex-col gap-2 px-3 py-3">
+                <label className="retro-label text-[#5b564a]" htmlFor="workflow-selector">
+                  Saved workflows
+                </label>
+                <select
+                  id="workflow-selector"
+                  value={selectedWorkflowId}
+                  onChange={(event) => setSelectedWorkflowId(event.target.value)}
+                  disabled={isLoadingCatalog || isLoadingWorkflow}
+                  className="border-2 border-[#24211a] bg-[#c8c0ab] px-2 py-2 text-[12px] text-[#171716] shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]"
+                >
+                  <option value="">
+                    {isLoadingCatalog ? "Loading..." : savedWorkflows.length ? "Select saved workflow" : "No saved workflows"}
+                  </option>
+                  {savedWorkflows.map((savedWorkflow) => (
+                    <option key={savedWorkflow.id} value={savedWorkflow.id}>
+                      {savedWorkflow.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleLoadWorkflow}
+                    disabled={!selectedWorkflowId || isLoadingWorkflow || isSaving}
+                    className="retro-button flex-1 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isLoadingWorkflow ? "Loading..." : "Load"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void refreshSavedWorkflows(selectedWorkflowId || workflow.id)}
+                    disabled={isLoadingCatalog || isLoadingWorkflow}
+                    className="retro-button flex-1 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveWorkflow}
+                disabled={isSaving || isValidating || isExecuting}
+                className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSaving ? "Saving..." : "Save workflow"}
+              </button>
+              <button
+                type="button"
+                onClick={handleValidateWorkflow}
+                disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
+                className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isValidating ? "Validating..." : "Validate workflow"}
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteWorkflow}
+                disabled={workflow.nodes.length === 0 || isExecuting || isValidating || isSaving}
+                className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isExecuting ? "Executing..." : "Run workflow"}
+              </button>
               <button
                 type="button"
                 onClick={handleClearCanvas}
-                disabled={workflow.nodes.length === 0}
+                disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
                 className="retro-button px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Clear canvas
@@ -103,11 +295,61 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             workflow={workflow}
             onWorkflowChange={handleWorkflowChange}
             onNodeSelect={setSelectedNode}
+            isExecuting={isExecuting}
             className="h-full w-full"
           />
         </div>
 
         <aside className="ml-3 w-80 shrink-0 border-2 border-[#24211a] bg-[linear-gradient(180deg,rgba(255,247,225,0.25)_0%,transparent_18%),linear-gradient(180deg,#d8d1bb_0%,#c6bea8_100%)] shadow-[inset_2px_2px_0_#f6f1de,inset_-2px_-2px_0_#7d7666,6px_6px_0_rgba(23,23,22,0.35)]">
+          <div className="border-b-2 border-[#24211a] p-4">
+            <div className="retro-label text-[#5b564a]">Backend status</div>
+            <div className="mt-3 space-y-3 text-sm">
+              <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
+                <div className="retro-label text-[#5b564a]">Persistence</div>
+                <div className="mt-2 text-[13px] text-[#171716]">
+                  {savedWorkflows.length} saved workflow{savedWorkflows.length === 1 ? "" : "s"}
+                </div>
+                <div className="mt-2 text-[12px] text-[#444039]">
+                  {selectedWorkflowId ? `Selected: ${selectedWorkflowId}` : "No saved workflow selected"}
+                </div>
+              </div>
+
+              <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
+                <div className="retro-label text-[#5b564a]">Validation</div>
+                <div className="mt-2 text-[13px] text-[#171716]">
+                  {validationResult
+                    ? validationResult.isValid
+                      ? "Valid"
+                      : "Invalid"
+                    : "Not run yet"}
+                </div>
+                {validationResult ? (
+                  <div className="mt-2 text-[12px] text-[#444039]">
+                    {validationResult.errors.length} errors, {validationResult.warnings.length} warnings
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
+                <div className="retro-label text-[#5b564a]">Execution</div>
+                <div className="mt-2 text-[13px] capitalize text-[#171716]">
+                  {executionResult ? executionResult.status : "Not run yet"}
+                </div>
+                {executionResult ? (
+                  <div className="mt-2 text-[12px] text-[#444039]">
+                    {executionResult.executedNodes.length} nodes executed
+                  </div>
+                ) : null}
+              </div>
+
+              {requestError ? (
+                <div className="border-2 border-[#24211a] bg-[#d9a79d] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]">
+                  {requestError}
+                </div>
+              ) : null}
+            </div>
+          </div>
+
           {selectedNode ? (
             <div className="h-full overflow-y-auto p-4">
               <div className="mb-4 border-2 border-[#24211a] bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_0%,transparent_38%),linear-gradient(180deg,#0f5759_0%,#08373a_100%)] px-3 py-3 text-[#f7f2df] shadow-[inset_1px_1px_0_rgba(255,255,255,0.2),inset_-1px_-1px_0_rgba(0,0,0,0.35)]">
@@ -151,6 +393,34 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                   {JSON.stringify(selectedNode.data, null, 2)}
                 </pre>
               </div>
+
+              {validationResult && (validationResult.errors.length > 0 || validationResult.warnings.length > 0) ? (
+                <div className="mt-4">
+                  <div className="retro-label mb-2 text-[#5b564a]">Validation feedback</div>
+                  <div className="space-y-2">
+                    {validationResult.errors
+                      .filter((issue) => issue.nodeId === selectedNode.id)
+                      .map((issue, index) => (
+                        <div
+                          key={`error-${index}`}
+                          className="border-2 border-[#24211a] bg-[#d9a79d] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                        >
+                          {issue.message}
+                        </div>
+                      ))}
+                    {validationResult.warnings
+                      .filter((issue) => issue.nodeId === selectedNode.id)
+                      .map((issue, index) => (
+                        <div
+                          key={`warning-${index}`}
+                          className="border-2 border-[#24211a] bg-[#e0cf9f] p-3 text-[12px] leading-5 text-[#43330d] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                        >
+                          {issue.message}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
@@ -161,10 +431,30 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
               <div className="text-sm text-[#444039]">
                 Select a block to inspect its agent configuration, app connection settings, tool actions, or delivery details.
               </div>
+              {validationResult && (validationResult.errors.length > 0 || validationResult.warnings.length > 0) ? (
+                <div className="w-full space-y-2 text-left">
+                  {validationResult.errors.slice(0, 3).map((issue, index) => (
+                    <div
+                      key={`general-error-${index}`}
+                      className="border-2 border-[#24211a] bg-[#d9a79d] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                    >
+                      {issue.message}
+                    </div>
+                  ))}
+                  {validationResult.warnings.slice(0, 2).map((issue, index) => (
+                    <div
+                      key={`general-warning-${index}`}
+                      className="border-2 border-[#24211a] bg-[#e0cf9f] p-3 text-[12px] leading-5 text-[#43330d] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                    >
+                      {issue.message}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <button
                 type="button"
                 onClick={handleClearCanvas}
-                disabled={workflow.nodes.length === 0}
+                disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
                 className="retro-button px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Clear canvas

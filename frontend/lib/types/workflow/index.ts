@@ -9,6 +9,7 @@ export * from './execution';
 
 export type {
   Workflow,
+  WorkflowSummary,
   WorkflowNode,
   WorkflowEdge,
   BaseNode,

@@ -1,0 +1,278 @@
+{
+  "id": "support-agent-workflow",
+  "name": "Support Agent Workflow",
+  "nodes": [
+    {
+      "id": "trigger-inbound",
+      "position": {
+        "x": 80.0,
+        "y": 220.0
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Inbound request",
+        "description": "Starts when a new support conversation arrives.",
+        "type": "trigger",
+        "triggerSource": "chat",
+        "eventName": "new.customer.message",
+        "schedule": null,
+        "filters": [
+          {
+            "id": "trigger-inbound-filter-1",
+            "field": "priority",
+            "operator": "equals",
+            "value": "high"
+          }
+        ]
+      }
+    },
+    {
+      "id": "knowledge-policy",
+      "position": {
+        "x": 370.8732394366197,
+        "y": 91.35915492957747
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Policy knowledge",
+        "description": "Searches refund rules and internal support playbooks.",
+        "type": "knowledge",
+        "sourceType": "vector_store",
+        "sourceName": "support-handbook",
+        "retrievalMode": "hybrid",
+        "topK": 5
+      }
+    },
+    {
+      "id": "prompt-brief",
+      "position": {
+        "x": 357.28169014084506,
+        "y": 437.37323943661966
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Prompt brief",
+        "description": "Builds the structured brief for the support agent.",
+        "type": "prompt",
+        "promptTemplate": "Summarize the customer issue, propose a next action, and decide whether escalation is needed.",
+        "inputVariables": [
+          "customer_message",
+          "customer_profile",
+          "conversation_history"
+        ],
+        "outputKey": "agent_brief"
+      }
+    },
+    {
+      "id": "agent-support",
+      "position": {
+        "x": 660.0,
+        "y": 278.443661971831
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Support agent",
+        "description": "Decides whether to answer directly, fetch data, or escalate.",
+        "type": "agent",
+        "role": "Support agent",
+        "model": "gpt-4.1-mini",
+        "systemPrompt": "Resolve the task using the provided context and tools.",
+        "temperature": 0.3,
+        "maxSteps": 6,
+        "allowedTools": [
+          "crm_lookup",
+          "send_email"
+        ]
+      }
+    },
+    {
+      "id": "tool-crm",
+      "position": {
+        "x": 950.4859154929577,
+        "y": 111.74647887323943
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "CRM lookup",
+        "description": "Pulls account tier, order history, and refund eligibility.",
+        "type": "tool",
+        "toolType": "http",
+        "endpoint": "https://api.example.com/customers/{id}",
+        "action": "crm_lookup",
+        "timeoutMs": 20000,
+        "retries": 2
+      }
+    },
+    {
+      "id": "memory-session",
+      "position": {
+        "x": 1004.8521126760563,
+        "y": 377.57042253521126
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Session memory",
+        "description": "Stores the running conversation summary and prior actions.",
+        "type": "memory",
+        "memoryScope": "session",
+        "strategy": "summarize",
+        "maxItems": 20
+      }
+    },
+    {
+      "id": "approval-refund",
+      "position": {
+        "x": 1377.8732394366195,
+        "y": 209.12676056338034
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Refund approval",
+        "description": "Requires a human check before high-value refunds are sent.",
+        "type": "approval",
+        "approverType": "human",
+        "instructions": "Approve refunds over $500 before the agent sends the final response.",
+        "timeoutMinutes": 30
+      }
+    },
+    {
+      "id": "output-reply",
+      "position": {
+        "x": 1732.2394366197186,
+        "y": 139.80985915492957
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Customer reply",
+        "description": "Delivers the final response back into the support channel.",
+        "type": "output",
+        "outputType": "chat",
+        "destination": "customer-reply",
+        "format": "markdown"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-trigger-inbound-knowledge-policy",
+      "source": "trigger-inbound",
+      "target": "knowledge-policy",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-trigger-inbound-prompt-brief",
+      "source": "trigger-inbound",
+      "target": "prompt-brief",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-knowledge-policy-agent-support",
+      "source": "knowledge-policy",
+      "target": "agent-support",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-prompt-brief-agent-support",
+      "source": "prompt-brief",
+      "target": "agent-support",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-agent-support-tool-crm",
+      "source": "agent-support",
+      "target": "tool-crm",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-agent-support-memory-session",
+      "source": "agent-support",
+      "target": "memory-session",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-memory-session-approval-refund",
+      "source": "memory-session",
+      "target": "approval-refund",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-approval-refund-output-reply",
+      "source": "approval-refund",
+      "target": "output-reply",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-tool-crm-approval-refund",
+      "source": "tool-crm",
+      "target": "approval-refund",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    }
+  ],
+  "metadata": {
+    "name": "Support Agent Workflow",
+    "description": "An AI agent workflow that retrieves knowledge, uses tools, connects third-party apps, and routes through human approval.",
+    "version": 1,
+    "createdAt": "2026-04-07T06:15:18.761000Z",
+    "updatedAt": "2026-04-07T06:22:28.333000Z",
+    "createdBy": "system",
+    "tags": [
+      "ai-agent",
+      "support",
+      "workflow",
+      "integrations"
+    ]
+  },
+  "status": "draft",
+  "triggers": []
+}

@@ -256,3 +256,13 @@ class Workflow(RivetModel):
     metadata: WorkflowMetadata
     status: WorkflowStatus
     triggers: list[TriggerConfig] = Field(default_factory=list)
+
+
+class WorkflowSummary(RivetModel):
+    id: str
+    name: str
+    status: WorkflowStatus
+    version: int
+    updated_at: datetime
+    node_count: int
+    edge_count: int

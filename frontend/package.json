@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest --config ./jest.config.js"
   },
   "dependencies": {
     "@xyflow/react": "^12.8.2",
