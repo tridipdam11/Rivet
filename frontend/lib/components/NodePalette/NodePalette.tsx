@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 import { NodeType } from '../../types/workflow';
 import './NodePalette.css';
 
@@ -78,9 +79,10 @@ const nodeTypes: NodePaletteItem[] = [
 
 interface NodePaletteProps {
   className?: string;
+  toolbar?: ReactNode;
 }
 
-export const NodePalette: React.FC<NodePaletteProps> = ({ className = '' }) => {
+export const NodePalette: React.FC<NodePaletteProps> = ({ className = '', toolbar }) => {
   const onDragStart = (event: React.DragEvent, nodeType: NodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.setData('text/plain', nodeType);
@@ -94,7 +96,10 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ className = '' }) => {
           <div className="node-palette-eyebrow">Agent Workflow Studio</div>
           <h3 className="retro-display">Blocks</h3>
         </div>
-        <p>Drag a block into the canvas.</p>
+        <div className="node-palette-header-actions">
+          {toolbar ? <div className="node-palette-toolbar">{toolbar}</div> : null}
+          <p>Drag a block into the canvas.</p>
+        </div>
       </div>
 
       <div className="node-palette-items">

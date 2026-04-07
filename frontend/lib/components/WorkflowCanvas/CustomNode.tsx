@@ -61,7 +61,22 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const appearance = nodeAppearance[nodeData.type];
   const isValid = nodeData.config?.isValid !== false;
   const hasErrors = nodeData.config?.errors && nodeData.config.errors.length > 0;
-  const isEditing = selected && nodeData.isEditing;
+  const isEditing = Boolean(nodeData.isEditing);
+  const stopCanvasEvent = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+  };
+  const buttonStyle: React.CSSProperties = {
+    border: '2px solid #24211a',
+    background: 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
+    color: '#171716',
+    padding: '6px 8px',
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    boxShadow: 'inset 1px 1px 0 #f6f1de, inset -1px -1px 0 #7d7666',
+    cursor: 'pointer',
+  };
   const handleFieldChange =
     (field: 'label' | 'description') =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -462,7 +477,15 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
             {nodeData.type.replace(/_/g, ' ')}
           </div>
           {isEditing ? (
-            <div style={{ display: 'grid', gap: '8px' }}>
+            <div
+              className="nodrag"
+              onClick={stopCanvasEvent}
+              onMouseDown={stopCanvasEvent}
+              onMouseUp={stopCanvasEvent}
+              onPointerDown={stopCanvasEvent}
+              onDoubleClick={stopCanvasEvent}
+              style={{ display: 'grid', gap: '8px' }}
+            >
               <input
                 className="nodrag"
                 value={nodeData.label ?? ''}
@@ -496,6 +519,30 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
                 }}
               >
                 {renderEditor()}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="nodrag"
+                  onClick={(event) => {
+                    stopCanvasEvent(event);
+                    nodeData.onToggleEdit?.(id);
+                  }}
+                  style={buttonStyle}
+                >
+                  Done
+                </button>
+                <button
+                  type="button"
+                  className="nodrag"
+                  onClick={(event) => {
+                    stopCanvasEvent(event);
+                    nodeData.onToggleEdit?.(id);
+                  }}
+                  style={buttonStyle}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           ) : (
@@ -537,26 +584,14 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
                 <button
                   type="button"
                   className="nodrag"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    nodeData.onToggleEdit?.(id);
-                  }}
-                  style={{
-                    marginTop: '10px',
-                    border: '2px solid #24211a',
-                    background: 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
-                    color: '#171716',
-                    padding: '6px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    boxShadow: 'inset 1px 1px 0 #f6f1de, inset -1px -1px 0 #7d7666',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Edit node
-                </button>
+                   onClick={(event) => {
+                     event.stopPropagation();
+                     nodeData.onToggleEdit?.(id);
+                   }}
+                   style={{ ...buttonStyle, marginTop: '10px' }}
+                 >
+                   Edit node
+                 </button>
               ) : null}
             </>
           )}

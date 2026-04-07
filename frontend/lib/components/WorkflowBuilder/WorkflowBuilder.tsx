@@ -191,7 +191,45 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
 
   return (
     <div className="retro-app-shell flex h-screen w-screen flex-col overflow-hidden p-3">
-      <NodePalette className="shrink-0" />
+      <NodePalette
+        className="shrink-0"
+        toolbar={
+          <>
+            <button
+              type="button"
+              onClick={handleSaveWorkflow}
+              disabled={isSaving || isValidating || isExecuting}
+              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSaving ? "Saving..." : "Save workflow"}
+            </button>
+            <button
+              type="button"
+              onClick={handleValidateWorkflow}
+              disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
+              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isValidating ? "Validating..." : "Validate workflow"}
+            </button>
+            <button
+              type="button"
+              onClick={handleExecuteWorkflow}
+              disabled={workflow.nodes.length === 0 || isExecuting || isValidating || isSaving}
+              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isExecuting ? "Executing..." : "Run workflow"}
+            </button>
+            <button
+              type="button"
+              onClick={handleClearCanvas}
+              disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
+              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Clear canvas
+            </button>
+          </>
+        }
+      />
       <div className="mt-3 flex min-h-0 flex-1 overflow-hidden">
         <div className="retro-window relative min-w-0 flex-1 overflow-hidden">
           <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-between gap-4">
@@ -256,38 +294,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                   </button>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleSaveWorkflow}
-                disabled={isSaving || isValidating || isExecuting}
-                className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSaving ? "Saving..." : "Save workflow"}
-              </button>
-              <button
-                type="button"
-                onClick={handleValidateWorkflow}
-                disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
-                className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isValidating ? "Validating..." : "Validate workflow"}
-              </button>
-              <button
-                type="button"
-                onClick={handleExecuteWorkflow}
-                disabled={workflow.nodes.length === 0 || isExecuting || isValidating || isSaving}
-                className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isExecuting ? "Executing..." : "Run workflow"}
-              </button>
-              <button
-                type="button"
-                onClick={handleClearCanvas}
-                disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
-                className="retro-button px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Clear canvas
-              </button>
             </div>
           </div>
 

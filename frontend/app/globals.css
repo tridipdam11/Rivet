@@ -44,6 +44,8 @@
 }
 
 :root {
+  --font-retro-mono: "IBM Plex Mono", "Cascadia Mono", "Cascadia Code", "Consolas", "Courier New", monospace;
+  --font-retro-display: "Press Start 2P", "VT323", "Courier New", monospace;
   --radius: 0;
   --background: #b9b198;
   --foreground: #191816;

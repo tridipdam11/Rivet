@@ -210,23 +210,30 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   const handleNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
       onNodeSelect?.(toWorkflowNode(node));
-      setEditingNodeId(null);
+
+      setEditingNodeId((current) => (current === node.id ? current : null));
     },
     [onNodeSelect, toWorkflowNode]
   );
 
   const handleSelectionChange: OnSelectionChangeFunc = useCallback(
     ({ nodes: selectedNodes }) => {
-      setEditingNodeId(null);
-
       if (selectedNodes.length === 1) {
+        setEditingNodeId((current) =>
+          current === selectedNodes[0].id ? current : null
+        );
         onNodeSelect?.(toWorkflowNode(selectedNodes[0]));
         return;
       }
 
+      if (selectedNodes.length === 0 && editingNodeId) {
+        return;
+      }
+
+      setEditingNodeId(null);
       onNodeSelect?.(null);
     },
-    [onNodeSelect, toWorkflowNode]
+    [editingNodeId, onNodeSelect, toWorkflowNode]
   );
 
   const onConnect: OnConnect = useCallback(
