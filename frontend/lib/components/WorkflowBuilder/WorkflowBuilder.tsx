@@ -1,6 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import {
+  FaBolt,
+  FaCircleCheck,
+  FaDatabase,
+  FaFolderOpen,
+  FaFloppyDisk,
+  FaPlay,
+  FaRotateRight,
+  FaTrashCan,
+} from "react-icons/fa6";
+import { HiOutlineViewGrid } from "react-icons/hi";
+import { LuSquareDashedMousePointer } from "react-icons/lu";
 import { WorkflowCanvas } from "@/lib/components/WorkflowCanvas/WorkflowCanvas";
 import { NodeFactory } from "@/lib/services/NodeFactory";
 import {
@@ -11,6 +23,7 @@ import {
   validateWorkflow,
 } from "@/lib/services/workflowApi";
 import {
+  ExecutionStatus,
   ExecutionResult,
   NodeType,
   ValidationResult,
@@ -189,82 +202,119 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     }
   };
 
+  const executionStatusTone =
+    executionResult?.status === ExecutionStatus.SUCCESS
+      ? "text-[#0d5d43]"
+      : executionResult?.status === ExecutionStatus.ERROR
+        ? "text-[#7a1f16]"
+        : "text-[#2b2b29]";
+
   return (
-    <div className="retro-app-shell flex h-screen w-screen flex-col overflow-hidden p-3">
+    <div className="retro-app-shell flex h-screen w-screen flex-col overflow-hidden p-3 md:p-5">
       <NodePalette
         className="shrink-0"
+        compact
         toolbar={
           <>
             <button
               type="button"
               onClick={handleSaveWorkflow}
               disabled={isSaving || isValidating || isExecuting}
-              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              className="retro-button inline-flex min-w-32 items-center justify-center gap-2 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
+              <FaFloppyDisk aria-hidden="true" />
               {isSaving ? "Saving..." : "Save workflow"}
             </button>
             <button
               type="button"
               onClick={handleValidateWorkflow}
               disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
-              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              className="retro-button inline-flex min-w-32 items-center justify-center gap-2 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
+              <FaCircleCheck aria-hidden="true" />
               {isValidating ? "Validating..." : "Validate workflow"}
             </button>
             <button
               type="button"
               onClick={handleExecuteWorkflow}
               disabled={workflow.nodes.length === 0 || isExecuting || isValidating || isSaving}
-              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              className="retro-button inline-flex min-w-32 items-center justify-center gap-2 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
+              <FaPlay aria-hidden="true" />
               {isExecuting ? "Executing..." : "Run workflow"}
             </button>
             <button
               type="button"
               onClick={handleClearCanvas}
               disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
-              className="retro-button min-w-32 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              className="retro-button inline-flex min-w-32 items-center justify-center gap-2 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
+              <FaTrashCan aria-hidden="true" />
               Clear canvas
             </button>
           </>
         }
       />
-      <div className="mt-3 flex min-h-0 flex-1 overflow-hidden">
-        <div className="retro-window relative min-w-0 flex-1 overflow-hidden">
-          <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-between gap-4">
-            <div className="retro-window max-w-lg px-4 py-3">
-              <div className="retro-label text-[#0c4a4d]">Pipeline</div>
-              <div className="mt-2 text-sm font-medium text-[#1b1916]">
-                Build and edit your workflow pipeline on the canvas.
+      <div className="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid min-h-0 gap-4">
+          <div className="retro-window relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[34px_34px_18px_18px]">
+            <div className="retro-window-titlebar is-blue rounded-t-[30px]">
+              <div>
+                <div className="retro-label text-[#153453]">Canvas room</div>
+                <div className="retro-window-title mt-1 text-[#171716]">{workflow.name}</div>
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <div className="retro-badge">
-                  <span className="retro-badge-dot" />
-                  {workflow.nodes.length} nodes
-                </div>
-                <div className="retro-badge">
-                  <span className="retro-badge-dot bg-[#2f8f94]" />
-                  {workflow.edges.length} links
-                </div>
-                <div className="retro-badge">
-                  <span className="retro-badge-dot bg-[#2b62b7]" />
-                  {workflow.id}
-                </div>
+              <div className="retro-window-dots">
+                <span className="retro-window-dot is-red" />
+                <span className="retro-window-dot is-yellow" />
+                <span className="retro-window-dot is-blue" />
               </div>
             </div>
 
-            <div className="flex flex-col items-end gap-2">
-              <div className="retro-window flex w-72 flex-col gap-2 px-3 py-3">
-                <label className="retro-label text-[#5b564a]" htmlFor="workflow-selector">
-                  Saved workflows
-                </label>
+            <WorkflowCanvas
+              workflow={workflow}
+              onWorkflowChange={handleWorkflowChange}
+              onNodeSelect={setSelectedNode}
+              isExecuting={isExecuting}
+              className="min-h-0 flex-1"
+            />
+          </div>
+        </div>
+
+        <aside className="retro-window flex min-h-0 flex-col overflow-hidden rounded-[34px_34px_18px_18px]">
+          <div className="retro-window-titlebar rounded-t-[30px]">
+            <div>
+                <div className="retro-label inline-flex items-center gap-2 text-[#6d5600]">
+                  <HiOutlineViewGrid aria-hidden="true" />
+                  Inspector
+                </div>
+              <div className="retro-window-title mt-1 text-[#171716]">System</div>
+            </div>
+            <div className="retro-window-dots">
+              <span className="retro-window-dot is-yellow" />
+              <span className="retro-window-dot is-red" />
+              <span className="retro-window-dot is-blue" />
+            </div>
+          </div>
+
+          <div className="border-b-3 border-[#24211a] p-4">
+            <div className="grid gap-3 text-sm sm:grid-cols-3 xl:grid-cols-1">
+              <div className="border-3 border-[#24211a] bg-[linear-gradient(180deg,#fff8ee_0%,#f1e0c1_100%)] p-3 shadow-[inset_2px_2px_0_#fffdf7,inset_-2px_-2px_0_#9f927e]">
+                <div className="retro-label inline-flex items-center gap-2 text-[#5b564a]">
+                  <FaDatabase aria-hidden="true" />
+                  Persistence
+                </div>
+                <div className="mt-2 text-[13px] text-[#171716]">
+                  {savedWorkflows.length} saved workflow{savedWorkflows.length === 1 ? "" : "s"}
+                </div>
+                <div className="mt-2 text-[12px] text-[#444039]">
+                  {selectedWorkflowId ? `Selected: ${selectedWorkflowId}` : "No saved workflow selected"}
+                </div>
                 <select
                   id="workflow-selector"
                   value={selectedWorkflowId}
                   onChange={(event) => setSelectedWorkflowId(event.target.value)}
                   disabled={isLoadingCatalog || isLoadingWorkflow}
-                  className="border-2 border-[#24211a] bg-[#c8c0ab] px-2 py-2 text-[12px] text-[#171716] shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]"
+                  className="mt-3 w-full border-3 border-[#24211a] bg-[#fff8ee] px-3 py-3 text-[12px] text-[#171716] shadow-[inset_2px_2px_0_#9f927e,inset_-2px_-2px_0_#fffdf7]"
                 >
                   <option value="">
                     {isLoadingCatalog ? "Loading..." : savedWorkflows.length ? "Select saved workflow" : "No saved workflows"}
@@ -275,53 +325,33 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                     </option>
                   ))}
                 </select>
-                <div className="flex gap-2">
+                <div className="mt-3 flex gap-2">
                   <button
                     type="button"
                     onClick={handleLoadWorkflow}
                     disabled={!selectedWorkflowId || isLoadingWorkflow || isSaving}
-                    className="retro-button flex-1 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                    className="retro-button inline-flex flex-1 items-center justify-center gap-2 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
                   >
+                    <FaFolderOpen aria-hidden="true" />
                     {isLoadingWorkflow ? "Loading..." : "Load"}
                   </button>
                   <button
                     type="button"
                     onClick={() => void refreshSavedWorkflows(selectedWorkflowId || workflow.id)}
                     disabled={isLoadingCatalog || isLoadingWorkflow}
-                    className="retro-button flex-1 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                    className="retro-button inline-flex flex-1 items-center justify-center gap-2 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
                   >
+                    <FaRotateRight aria-hidden="true" />
                     Refresh
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <WorkflowCanvas
-            workflow={workflow}
-            onWorkflowChange={handleWorkflowChange}
-            onNodeSelect={setSelectedNode}
-            isExecuting={isExecuting}
-            className="h-full w-full"
-          />
-        </div>
-
-        <aside className="ml-3 w-80 shrink-0 border-2 border-[#24211a] bg-[linear-gradient(180deg,rgba(255,247,225,0.25)_0%,transparent_18%),linear-gradient(180deg,#d8d1bb_0%,#c6bea8_100%)] shadow-[inset_2px_2px_0_#f6f1de,inset_-2px_-2px_0_#7d7666,6px_6px_0_rgba(23,23,22,0.35)]">
-          <div className="border-b-2 border-[#24211a] p-4">
-            <div className="retro-label text-[#5b564a]">Backend status</div>
-            <div className="mt-3 space-y-3 text-sm">
-              <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
-                <div className="retro-label text-[#5b564a]">Persistence</div>
-                <div className="mt-2 text-[13px] text-[#171716]">
-                  {savedWorkflows.length} saved workflow{savedWorkflows.length === 1 ? "" : "s"}
+              <div className="border-3 border-[#24211a] bg-[linear-gradient(180deg,#eff9ff_0%,#c3dcff_100%)] p-3 shadow-[inset_2px_2px_0_#fffdf7,inset_-2px_-2px_0_#9f927e]">
+                <div className="retro-label inline-flex items-center gap-2 text-[#2b4f85]">
+                  <FaCircleCheck aria-hidden="true" />
+                  Validation
                 </div>
-                <div className="mt-2 text-[12px] text-[#444039]">
-                  {selectedWorkflowId ? `Selected: ${selectedWorkflowId}` : "No saved workflow selected"}
-                </div>
-              </div>
-
-              <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
-                <div className="retro-label text-[#5b564a]">Validation</div>
                 <div className="mt-2 text-[13px] text-[#171716]">
                   {validationResult
                     ? validationResult.isValid
@@ -336,9 +366,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                 ) : null}
               </div>
 
-              <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
-                <div className="retro-label text-[#5b564a]">Execution</div>
-                <div className="mt-2 text-[13px] capitalize text-[#171716]">
+              <div className="border-3 border-[#24211a] bg-[linear-gradient(180deg,#ffece6_0%,#ffbcae_100%)] p-3 shadow-[inset_2px_2px_0_#fffdf7,inset_-2px_-2px_0_#9f927e]">
+                <div className="retro-label inline-flex items-center gap-2 text-[#7a1f16]">
+                  <FaBolt aria-hidden="true" />
+                  Execution
+                </div>
+                <div className={`mt-2 text-[13px] capitalize ${executionStatusTone}`}>
                   {executionResult ? executionResult.status : "Not run yet"}
                 </div>
                 {executionResult ? (
@@ -347,19 +380,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                   </div>
                 ) : null}
               </div>
-
-              {requestError ? (
-                <div className="border-2 border-[#24211a] bg-[#d9a79d] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]">
-                  {requestError}
-                </div>
-              ) : null}
             </div>
+
+            {requestError ? (
+              <div className="mt-3 border-3 border-[#24211a] bg-[#ffb4a8] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(255,253,247,0.9),inset_-2px_-2px_0_rgba(159,146,126,0.9)]">
+                {requestError}
+              </div>
+            ) : null}
           </div>
 
           {selectedNode ? (
             <div className="h-full overflow-y-auto p-4">
-              <div className="mb-4 border-2 border-[#24211a] bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_0%,transparent_38%),linear-gradient(180deg,#0f5759_0%,#08373a_100%)] px-3 py-3 text-[#f7f2df] shadow-[inset_1px_1px_0_rgba(255,255,255,0.2),inset_-1px_-1px_0_rgba(0,0,0,0.35)]">
-                <div className="retro-label text-[#f2e7b8]">Selected node</div>
+              <div className="mb-4 border-3 border-[#24211a] bg-[linear-gradient(135deg,rgba(255,255,255,0.16)_0%,transparent_38%),linear-gradient(180deg,#4c8df6_0%,#1ba2d3_100%)] px-4 py-4 text-[#f7f2df] shadow-[inset_1px_1px_0_rgba(255,255,255,0.22),inset_-1px_-1px_0_rgba(0,0,0,0.3)]">
+                <div className="retro-label inline-flex items-center gap-2 text-[#eef6ff]">
+                  <LuSquareDashedMousePointer aria-hidden="true" />
+                  Selected node
+                </div>
                 <h2 className="retro-display mt-3 text-base font-semibold leading-6 text-[#fff8e8]">
                   {selectedNode.data.label || selectedNode.data.type}
                 </h2>
@@ -369,23 +405,24 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
               <button
                 type="button"
                 onClick={handleDeleteSelectedNode}
-                className="mb-4 block w-full border-2 border-[#24211a] bg-[linear-gradient(180deg,#c96d5b_0%,#934034_100%)] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-[#fff5e8] shadow-[inset_2px_2px_0_rgba(255,255,255,0.18),inset_-2px_-2px_0_rgba(0,0,0,0.28)] transition hover:brightness-105 active:translate-x-px active:translate-y-px active:shadow-[inset_-2px_-2px_0_rgba(255,255,255,0.18),inset_2px_2px_0_rgba(0,0,0,0.28)]"
+                className="mb-4 inline-flex w-full items-center gap-2 border-3 border-[#24211a] bg-[linear-gradient(180deg,#ff8a7a_0%,#ff5a49_100%)] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-[#fff5e8] shadow-[inset_2px_2px_0_rgba(255,255,255,0.18),inset_-2px_-2px_0_rgba(0,0,0,0.28)] transition hover:brightness-105 active:translate-x-px active:translate-y-px active:shadow-[inset_-2px_-2px_0_rgba(255,255,255,0.18),inset_2px_2px_0_rgba(0,0,0,0.28)]"
               >
+                <FaTrashCan aria-hidden="true" />
                 Delete node
               </button>
 
               {selectedNode.data.description ? (
-                <div className="mb-4 border-2 border-[#24211a] bg-[#c8c0ab] p-3 text-sm leading-6 text-[#2d2a26] shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
+                <div className="mb-4 border-3 border-[#24211a] bg-[#fff8ee] p-3 text-sm leading-6 text-[#2d2a26] shadow-[inset_2px_2px_0_#9f927e,inset_-2px_-2px_0_#fffdf7]">
                   {selectedNode.data.description}
                 </div>
               ) : null}
 
               <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-                <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
+                <div className="border-3 border-[#24211a] bg-[#fff8ee] p-3 shadow-[inset_2px_2px_0_#9f927e,inset_-2px_-2px_0_#fffdf7]">
                   <div className="retro-label text-[#5b564a]">Node ID</div>
                   <div className="mt-2 break-all text-[13px] text-[#171716]">{selectedNode.id}</div>
                 </div>
-                <div className="border-2 border-[#24211a] bg-[#c8c0ab] p-3 shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
+                <div className="border-3 border-[#24211a] bg-[#fff8ee] p-3 shadow-[inset_2px_2px_0_#9f927e,inset_-2px_-2px_0_#fffdf7]">
                   <div className="retro-label text-[#5b564a]">Position</div>
                   <div className="mt-2 text-[13px] text-[#171716]">
                     {Math.round(selectedNode.position.x)}, {Math.round(selectedNode.position.y)}
@@ -395,7 +432,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
 
               <div>
                 <div className="retro-label mb-2 text-[#5b564a]">Configuration</div>
-                <pre className="overflow-x-auto border-2 border-[#24211a] bg-[#c8c0ab] p-3 text-xs leading-6 text-[#171716] shadow-[inset_2px_2px_0_#7d7666,inset_-2px_-2px_0_#f6f1de]">
+                <pre className="overflow-x-auto border-3 border-[#24211a] bg-[#fff8ee] p-3 text-xs leading-6 text-[#171716] shadow-[inset_2px_2px_0_#9f927e,inset_-2px_-2px_0_#fffdf7]">
                   {JSON.stringify(selectedNode.data, null, 2)}
                 </pre>
               </div>
@@ -409,7 +446,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                       .map((issue, index) => (
                         <div
                           key={`error-${index}`}
-                          className="border-2 border-[#24211a] bg-[#d9a79d] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                          className="border-3 border-[#24211a] bg-[#ffb4a8] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(255,253,247,0.9),inset_-2px_-2px_0_rgba(159,146,126,0.9)]"
                         >
                           {issue.message}
                         </div>
@@ -419,7 +456,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                       .map((issue, index) => (
                         <div
                           key={`warning-${index}`}
-                          className="border-2 border-[#24211a] bg-[#e0cf9f] p-3 text-[12px] leading-5 text-[#43330d] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                          className="border-3 border-[#24211a] bg-[#ffe59d] p-3 text-[12px] leading-5 text-[#43330d] shadow-[inset_2px_2px_0_rgba(255,253,247,0.9),inset_-2px_-2px_0_rgba(159,146,126,0.9)]"
                         >
                           {issue.message}
                         </div>
@@ -430,7 +467,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
-              <div className="retro-badge">
+              <div className="retro-badge inline-flex items-center gap-2 bg-[linear-gradient(180deg,#eff9ff_0%,#c3dcff_100%)]">
+                <LuSquareDashedMousePointer aria-hidden="true" />
                 <span className="retro-badge-dot bg-[#2b62b7]" />
                 Drag a block to begin
               </div>
@@ -442,7 +480,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                   {validationResult.errors.slice(0, 3).map((issue, index) => (
                     <div
                       key={`general-error-${index}`}
-                      className="border-2 border-[#24211a] bg-[#d9a79d] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                      className="border-3 border-[#24211a] bg-[#ffb4a8] p-3 text-[12px] leading-5 text-[#31120f] shadow-[inset_2px_2px_0_rgba(255,253,247,0.9),inset_-2px_-2px_0_rgba(159,146,126,0.9)]"
                     >
                       {issue.message}
                     </div>
@@ -450,7 +488,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                   {validationResult.warnings.slice(0, 2).map((issue, index) => (
                     <div
                       key={`general-warning-${index}`}
-                      className="border-2 border-[#24211a] bg-[#e0cf9f] p-3 text-[12px] leading-5 text-[#43330d] shadow-[inset_2px_2px_0_rgba(125,118,102,0.9),inset_-2px_-2px_0_rgba(246,241,222,0.9)]"
+                      className="border-3 border-[#24211a] bg-[#ffe59d] p-3 text-[12px] leading-5 text-[#43330d] shadow-[inset_2px_2px_0_rgba(255,253,247,0.9),inset_-2px_-2px_0_rgba(159,146,126,0.9)]"
                     >
                       {issue.message}
                     </div>
@@ -461,8 +499,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                 type="button"
                 onClick={handleClearCanvas}
                 disabled={workflow.nodes.length === 0 || isValidating || isExecuting || isSaving}
-                className="retro-button px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                className="retro-button inline-flex items-center gap-2 px-4 py-2 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
+                <FaTrashCan aria-hidden="true" />
                 Clear canvas
               </button>
             </div>

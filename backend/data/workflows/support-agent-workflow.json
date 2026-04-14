@@ -32,8 +32,8 @@
     {
       "id": "knowledge-policy",
       "position": {
-        "x": 370.8732394366197,
-        "y": 91.35915492957747
+        "x": 360.0,
+        "y": 90.0
       },
       "data": {
         "config": {
@@ -52,8 +52,8 @@
     {
       "id": "prompt-brief",
       "position": {
-        "x": 357.28169014084506,
-        "y": 437.37323943661966
+        "x": 360.0,
+        "y": 330.0
       },
       "data": {
         "config": {
@@ -76,7 +76,7 @@
       "id": "agent-support",
       "position": {
         "x": 660.0,
-        "y": 278.443661971831
+        "y": 220.0
       },
       "data": {
         "config": {
@@ -100,8 +100,8 @@
     {
       "id": "tool-crm",
       "position": {
-        "x": 950.4859154929577,
-        "y": 111.74647887323943
+        "x": 960.0,
+        "y": 90.0
       },
       "data": {
         "config": {
@@ -119,10 +119,35 @@
       }
     },
     {
+      "id": "app-google-docs",
+      "position": {
+        "x": 1260.0,
+        "y": 90.0
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Google Docs",
+        "description": "Writes the approved support summary into a shared Google Docs operations log.",
+        "type": "integration",
+        "appType": "google",
+        "appName": "Google Docs",
+        "action": "append_summary",
+        "authStatus": "connected",
+        "mappedFields": [
+          "customer_email",
+          "refund_status",
+          "agent_summary"
+        ]
+      }
+    },
+    {
       "id": "memory-session",
       "position": {
-        "x": 1004.8521126760563,
-        "y": 377.57042253521126
+        "x": 960.0,
+        "y": 330.0
       },
       "data": {
         "config": {
@@ -140,27 +165,27 @@
     {
       "id": "approval-refund",
       "position": {
-        "x": 1233.8028169014087,
-        "y": -46.39436619718299
+        "x": 1560.0,
+        "y": 220.0
       },
       "data": {
         "config": {
           "isValid": true,
           "errors": []
         },
-        "label": "Refund approvaltwtww 23442323232323 232424 ",
-        "description": "Requires a human check before high-value refunds are sent.ww www wwww w",
+        "label": "Refund approval",
+        "description": "Requires a human check before high-value refunds are sent.",
         "type": "approval",
-        "approverType": "team",
+        "approverType": "human",
         "instructions": "Approve refunds over $500 before the agent sends the final response.",
-        "timeoutMinutes": 3022
+        "timeoutMinutes": 30
       }
     },
     {
       "id": "output-reply",
       "position": {
-        "x": 1732.2394366197186,
-        "y": 139.80985915492957
+        "x": 1860.0,
+        "y": 220.0
       },
       "data": {
         "config": {
@@ -173,6 +198,51 @@
         "outputType": "chat",
         "destination": "customer-reply",
         "format": "markdown"
+      }
+    },
+    {
+      "id": "knowledge-1776175244980-e6z15q",
+      "position": {
+        "x": 984.7873994860811,
+        "y": 551.7828291882984
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Knowledge",
+        "description": "",
+        "type": "knowledge",
+        "sourceType": "vector_store",
+        "sourceName": "support-handbook",
+        "retrievalMode": "hybrid",
+        "topK": 5
+      }
+    },
+    {
+      "id": "integration-1776175247180-5ozof3",
+      "position": {
+        "x": 375.4769338971312,
+        "y": 543.0885411837315
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Integration",
+        "description": "",
+        "type": "integration",
+        "appType": "google",
+        "appName": "Google Docs",
+        "action": "append_summary",
+        "authStatus": "connected",
+        "mappedFields": [
+          "customer_email",
+          "refund_status",
+          "agent_summary"
+        ]
       }
     }
   ],
@@ -232,6 +302,24 @@
       "data": null
     },
     {
+      "id": "edge-tool-crm-app-google-docs",
+      "source": "tool-crm",
+      "target": "app-google-docs",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-app-google-docs-approval-refund",
+      "source": "app-google-docs",
+      "target": "approval-refund",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
       "id": "edge-memory-session-approval-refund",
       "source": "memory-session",
       "target": "approval-refund",
@@ -250,8 +338,17 @@
       "data": null
     },
     {
-      "id": "edge-tool-crm-approval-refund",
-      "source": "tool-crm",
+      "id": "edge-integration-1776175247180-5ozof3-knowledge-1776175244980-e6z15q",
+      "source": "integration-1776175247180-5ozof3",
+      "target": "knowledge-1776175244980-e6z15q",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "type": "smoothstep",
+      "data": null
+    },
+    {
+      "id": "edge-knowledge-1776175244980-e6z15q-approval-refund",
+      "source": "knowledge-1776175244980-e6z15q",
       "target": "approval-refund",
       "sourceHandle": null,
       "targetHandle": null,
@@ -263,8 +360,8 @@
     "name": "Support Agent Workflow",
     "description": "An AI agent workflow that retrieves knowledge, uses tools, connects third-party apps, and routes through human approval.",
     "version": 1,
-    "createdAt": "2026-04-07T06:15:18.761000Z",
-    "updatedAt": "2026-04-07T15:12:17.302000Z",
+    "createdAt": "2026-04-14T14:00:39.144000Z",
+    "updatedAt": "2026-04-14T14:01:57.219000Z",
     "createdBy": "system",
     "tags": [
       "ai-agent",

@@ -3,32 +3,30 @@
   width: 100%;
   position: relative;
   background:
-    radial-gradient(circle at top left, rgba(233, 248, 238, 0.25), transparent 24%),
-    radial-gradient(circle at 82% 22%, rgba(255, 214, 153, 0.2), transparent 20%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.08),
-      rgba(255, 255, 255, 0.08) 1px,
-      rgba(0, 0, 0, 0.02) 1px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #9fb9ab 0%, #7f9b8e 52%, #698276 100%);
+    radial-gradient(circle at top left, rgba(255, 180, 0, 0.12), transparent 20%),
+    radial-gradient(circle at 82% 22%, rgba(27, 162, 211, 0.14), transparent 18%),
+    radial-gradient(circle at 72% 82%, rgba(255, 90, 73, 0.1), transparent 14%),
+    linear-gradient(90deg, transparent 31px, rgba(36, 33, 26, 0.08) 32px, transparent 33px),
+    linear-gradient(transparent 31px, rgba(36, 33, 26, 0.08) 32px, transparent 33px),
+    linear-gradient(180deg, #fffaf0 0%, #f6ecde 100%);
+  background-size: auto, auto, auto, 32px 32px, 32px 32px, auto;
   box-shadow:
-    inset 2px 2px 0 #d8e5dc,
-    inset -2px -2px 0 #44584f;
+    inset 2px 2px 0 #fffdf7,
+    inset -2px -2px 0 #9f927e;
 }
 
 .workflow-canvas::before {
   content: "";
   position: absolute;
-  inset: 12px;
-  border: 1px dashed rgba(36, 33, 26, 0.3);
+  inset: 18px;
+  border: 2px dashed rgba(36, 33, 26, 0.22);
+  border-radius: 24px;
   pointer-events: none;
 }
 
 .workflow-canvas .react-flow {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.02));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02));
 }
 
 .workflow-canvas.executing {
@@ -57,7 +55,8 @@
 .react-flow__controls {
   bottom: 20px;
   left: 20px;
-  border: 2px solid #24211a;
+  border: 3px solid #24211a;
+  border-radius: 16px;
   box-shadow:
     inset 2px 2px 0 #f6f1de,
     inset -2px -2px 0 #7d7666;
@@ -67,8 +66,9 @@
 .react-flow__minimap {
   bottom: 20px;
   right: 20px;
-  border: 2px solid #24211a !important;
-  background: #d8d1bb !important;
+  border: 3px solid #24211a !important;
+  border-radius: 18px !important;
+  background: #fff3dd !important;
   box-shadow:
     inset 2px 2px 0 #f6f1de,
     inset -2px -2px 0 #7d7666;
@@ -79,7 +79,7 @@
 }
 
 .react-flow__handle {
-  border: 2px solid #f7f2df;
+  border: 3px solid #f7f2df;
   transition: all 0.2s ease;
 }
 
@@ -92,27 +92,27 @@
 }
 
 .react-flow__edge-path {
-  stroke: #355248;
+  stroke: #233548;
   stroke-width: 3;
-  stroke-dasharray: 10 8;
-  stroke-linecap: square;
+  stroke-dasharray: 12 8;
+  stroke-linecap: round;
   filter: drop-shadow(2px 2px 0 rgba(23, 23, 22, 0.15));
   animation: retro-edge-flow 0.8s linear infinite;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #d9893d;
+  stroke: #ffb400;
   stroke-width: 4;
 }
 
 .react-flow__edge:hover .react-flow__edge-path {
-  stroke: #d9893d;
+  stroke: #1ba2d3;
   stroke-width: 4;
 }
 
 .react-flow__controls-button {
-  background: linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%) !important;
-  border-bottom: 2px solid #24211a !important;
+  background: linear-gradient(180deg, #fff7e4 0%, #ffd766 100%) !important;
+  border-bottom: 3px solid #24211a !important;
   color: #171716 !important;
   box-shadow:
     inset 1px 1px 0 #f6f1de,
@@ -124,7 +124,155 @@
 }
 
 .react-flow__background pattern circle {
-  fill: rgba(43, 57, 51, 0.28);
+  fill: rgba(35, 53, 72, 0.2);
+}
+
+.workflow-canvas .react-flow__panel {
+  margin: 18px;
+}
+
+.workflow-canvas .react-flow__panel.bottom {
+  margin-bottom: 34px;
+}
+
+.workflow-canvas .react-flow__panel.workflow-canvas-picker-panel {
+  margin-left: 86px;
+  z-index: 8;
+}
+
+.workflow-canvas .react-flow__node.selected {
+  z-index: 5 !important;
+}
+
+.workflow-canvas-picker-anchor {
+  position: relative;
+}
+
+.workflow-canvas-plus {
+  width: 52px;
+  height: 52px;
+  border: 3px solid #24211a;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffe485 0%, #ffb400 100%);
+  box-shadow:
+    inset 2px 2px 0 #fffdf7,
+    inset -2px -2px 0 #9f927e,
+    4px 4px 0 rgba(23, 23, 22, 0.16);
+  color: #171716;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workflow-canvas-picker {
+  position: absolute;
+  left: 0;
+  bottom: 68px;
+  z-index: 9;
+  width: min(540px, calc(100vw - 80px));
+  max-height: 420px;
+  overflow: hidden;
+  border: 3px solid #24211a;
+  border-radius: 28px 28px 16px 16px;
+  background: linear-gradient(180deg, #fff7e7 0%, #efdfc1 100%);
+  box-shadow:
+    inset 2px 2px 0 #fffdf7,
+    inset -2px -2px 0 #9f927e,
+    10px 10px 0 rgba(23, 23, 22, 0.14);
+}
+
+.workflow-canvas-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 3px solid #24211a;
+  background: linear-gradient(90deg, #ff7f6f 0%, #ffb400 100%);
+}
+
+.workflow-canvas-picker-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.workflow-canvas-picker-title {
+  font-family: var(--font-retro-display), sans-serif;
+  font-size: 20px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.workflow-canvas-picker-close {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #24211a;
+  border-radius: 999px;
+  background: #fff8ee;
+  color: #171716;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.workflow-canvas-picker-grid {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  max-height: 340px;
+  overflow: auto;
+}
+
+.workflow-canvas-picker-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 3px solid #24211a;
+  border-radius: 18px 18px 10px 10px;
+  background: linear-gradient(180deg, #fffbf1 0%, #f0dfc0 100%);
+  box-shadow:
+    inset 1px 1px 0 #fffdf7,
+    inset -1px -1px 0 #9f927e,
+    4px 4px 0 rgba(23, 23, 22, 0.1);
+  cursor: grab;
+}
+
+.workflow-canvas-picker-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 3px solid #24211a;
+  border-radius: 12px;
+  background: #fff8ee;
+  font-size: 16px;
+}
+
+.workflow-canvas-picker-copy {
+  min-width: 0;
+}
+
+.workflow-canvas-picker-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #171716;
+}
+
+.workflow-canvas-picker-description {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #4a443b;
 }
 
 @keyframes retro-edge-flow {

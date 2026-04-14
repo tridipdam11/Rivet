@@ -27,13 +27,14 @@ interface EditableNodeData extends NodeData {
 
 const fieldStyle: React.CSSProperties = {
   width: '100%',
-  border: '2px solid #24211a',
-  background: '#f4efd9',
+  border: '3px solid #24211a',
+  borderRadius: '12px',
+  background: '#fffaf0',
   color: '#171716',
-  padding: '6px 8px',
+  padding: '8px 10px',
   fontSize: '12px',
   lineHeight: 1.4,
-  boxShadow: 'inset 1px 1px 0 #7d7666, inset -1px -1px 0 #fffdf2',
+  boxShadow: 'inset 1px 1px 0 #9f927e, inset -1px -1px 0 #fffdf2',
   outline: 'none',
 };
 
@@ -74,10 +75,11 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
     event.stopPropagation();
   };
   const buttonStyle: React.CSSProperties = {
-    border: '2px solid #24211a',
-    background: 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
+    border: '3px solid #24211a',
+    borderRadius: '12px',
+    background: 'linear-gradient(180deg, #ffe485 0%, #ffb400 100%)',
     color: '#171716',
-    padding: '6px 8px',
+    padding: '7px 10px',
     fontSize: '10px',
     fontWeight: 700,
     letterSpacing: '0.08em',
@@ -523,14 +525,15 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
     <div
       className={`custom-node ${selected ? 'selected' : ''} ${!isValid ? 'invalid' : ''}`}
       style={{
-        background: `linear-gradient(135deg, ${appearance.color}22 0%, transparent 34%), linear-gradient(180deg, #efe7d3 0%, #c9c1aa 100%)`,
-        border: `2px solid ${selected ? '#d9893d' : '#24211a'}`,
-        padding: '14px',
-        minWidth: '220px',
+        background: `linear-gradient(135deg, ${appearance.color}33 0%, transparent 38%), linear-gradient(180deg, #fff9ea 0%, #f0dfc0 100%)`,
+        border: `3px solid ${selected ? '#ffb400' : '#24211a'}`,
+        borderRadius: '24px 24px 12px 12px',
+        padding: '16px',
+        minWidth: '250px',
         boxShadow:
           selected
-            ? 'inset 2px 2px 0 #fff8e8, inset -2px -2px 0 #7d7666, 0 0 0 2px rgba(217,137,61,0.35), 5px 5px 0 rgba(23,23,22,0.14)'
-            : 'inset 2px 2px 0 #f6f1de, inset -2px -2px 0 #7d7666, 4px 4px 0 rgba(23,23,22,0.1)',
+            ? 'inset 2px 2px 0 #fff8e8, inset -2px -2px 0 #7d7666, 0 0 0 3px rgba(255,180,0,0.18), 6px 6px 0 rgba(23,23,22,0.14)'
+            : 'inset 2px 2px 0 #f6f1de, inset -2px -2px 0 #7d7666, 5px 5px 0 rgba(23,23,22,0.1)',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -540,19 +543,20 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
         position={Position.Left}
         style={{
           background: appearance.color,
-          width: '12px',
-          height: '12px',
-          borderRadius: 0,
+          width: '14px',
+          height: '14px',
+          borderRadius: '999px',
         }}
       />
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
         <div
           style={{
-            width: '40px',
-            height: '40px',
-            border: '2px solid #24211a',
-            background: `linear-gradient(180deg, #fff8e8 0%, ${appearance.color}22 100%)`,
+            width: '46px',
+            height: '46px',
+            border: '3px solid #24211a',
+            borderRadius: '14px',
+            background: `linear-gradient(180deg, #fffdf4 0%, ${appearance.color}22 100%)`,
             color: appearance.color,
             display: 'flex',
             alignItems: 'center',
@@ -561,7 +565,7 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
             fontWeight: 800,
             letterSpacing: '0.08em',
             flexShrink: 0,
-            boxShadow: 'inset 1px 1px 0 #fffdf2, inset -1px -1px 0 #7d7666, 2px 2px 0 rgba(23,23,22,0.08)',
+            boxShadow: 'inset 1px 1px 0 #fffdf2, inset -1px -1px 0 #7d7666, 3px 3px 0 rgba(23,23,22,0.08)',
           }}
         >
           {appearance.badge}
@@ -571,10 +575,11 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              border: '1px solid #24211a',
+              border: '2px solid #24211a',
+              borderRadius: '999px',
               background: appearance.color,
               color: '#f7f2df',
-              padding: '3px 7px',
+              padding: '4px 8px',
               fontSize: '10px',
               fontWeight: 700,
               letterSpacing: '0.08em',
@@ -658,11 +663,11 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
               <div
               style={{
                   fontWeight: 700,
-                  fontSize: '15px',
+                  fontSize: '16px',
                   color: '#171716',
                   marginBottom: '4px',
                   textTransform: 'uppercase',
-                  textShadow: '1px 1px 0 rgba(255, 248, 232, 0.35)',
+                  textShadow: '1px 1px 0 rgba(255, 248, 232, 0.45)',
                 }}
               >
                 {nodeData.label || nodeData.type.replace(/_/g, ' ')}
@@ -673,7 +678,7 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
                     fontSize: '12px',
                     color: '#3f3a32',
                     lineHeight: 1.4,
-                    maxWidth: '180px',
+                    maxWidth: '200px',
                   }}
                 >
                   {nodeData.description}
@@ -710,13 +715,14 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
         <div
           style={{
             position: 'absolute',
-            top: '-6px',
-            right: '-6px',
-            background: '#9b3b2e',
+            top: '10px',
+            right: '10px',
+            background: '#ff5a49',
             color: '#fff5e8',
-            width: '16px',
-            height: '16px',
-            border: '1px solid #24211a',
+            width: '18px',
+            height: '18px',
+            border: '2px solid #24211a',
+            borderRadius: '999px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -733,9 +739,9 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
         position={Position.Right}
         style={{
           background: appearance.color,
-          width: '12px',
-          height: '12px',
-          borderRadius: 0,
+          width: '14px',
+          height: '14px',
+          borderRadius: '999px',
         }}
       />
     </div>

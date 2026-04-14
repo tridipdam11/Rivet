@@ -44,53 +44,55 @@
 }
 
 :root {
-  --font-retro-mono: "IBM Plex Mono", "Cascadia Mono", "Cascadia Code", "Consolas", "Courier New", monospace;
-  --font-retro-display: "Press Start 2P", "VT323", "Courier New", monospace;
+  --font-retro-mono: "Aptos Mono", "IBM Plex Mono", "Cascadia Mono", "Consolas", monospace;
+  --font-retro-display: Impact, Haettenschweiler, "Arial Black", sans-serif;
   --radius: 0;
-  --background: #b9b198;
-  --foreground: #191816;
-  --card: #d5cfbc;
+  --background: #f6eee4;
+  --foreground: #181716;
+  --card: #fff8ee;
   --card-foreground: #171716;
-  --popover: #d5cfbc;
+  --popover: #fff8ee;
   --popover-foreground: #171716;
-  --primary: #0c4a4d;
-  --primary-foreground: #f4efd9;
-  --secondary: #cfc8b2;
-  --secondary-foreground: #191816;
-  --muted: #b6af9c;
-  --muted-foreground: #47443d;
-  --accent: #e0d9c2;
+  --primary: #ffb400;
+  --primary-foreground: #171716;
+  --secondary: #dfe8f5;
+  --secondary-foreground: #171716;
+  --muted: #efe4d1;
+  --muted-foreground: #524b43;
+  --accent: #ffd85c;
   --accent-foreground: #171716;
-  --destructive: #8d3a2f;
+  --destructive: #ff5a49;
   --border: #111;
-  --input: #8f8977;
-  --ring: #11787f;
-  --chart-1: #0c4a4d;
-  --chart-2: #b05d2d;
-  --chart-3: #38647c;
-  --chart-4: #6d6739;
-  --chart-5: #8d3a2f;
-  --sidebar: #c8c2ae;
+  --input: #d3c7b5;
+  --ring: #1ba2d3;
+  --chart-1: #ffb400;
+  --chart-2: #1ba2d3;
+  --chart-3: #ff5a49;
+  --chart-4: #8fbcff;
+  --chart-5: #233548;
+  --sidebar: #fff4e2;
   --sidebar-foreground: #171716;
-  --sidebar-primary: #0c4a4d;
-  --sidebar-primary-foreground: #f4efd9;
-  --sidebar-accent: #dcd5bf;
+  --sidebar-primary: #ffb400;
+  --sidebar-primary-foreground: #171716;
+  --sidebar-accent: #dfe8f5;
   --sidebar-accent-foreground: #171716;
   --sidebar-border: #111;
-  --sidebar-ring: #11787f;
-  --retro-panel: #d9d2bd;
-  --retro-panel-dark: #c8c0ab;
-  --retro-highlight: #f6f1de;
-  --retro-shadow: #7d7666;
-  --retro-shadow-deep: #24211a;
-  --retro-screen: #8ba698;
-  --retro-screen-dark: #5c786c;
-  --retro-warning: #9b3b2e;
+  --sidebar-ring: #1ba2d3;
+  --retro-panel: #fff3dd;
+  --retro-panel-dark: #e7dac3;
+  --retro-highlight: #fffdf7;
+  --retro-shadow: #9f927e;
+  --retro-shadow-deep: #1d1d1b;
+  --retro-screen: #fff9ea;
+  --retro-screen-dark: #d9e3f2;
+  --retro-warning: #ff5a49;
   --retro-ink: #171716;
-  --retro-cyan: #2f8f94;
-  --retro-amber: #d58b3d;
-  --retro-red: #bd5848;
-  --retro-blue: #2b62b7;
+  --retro-cyan: #1ba2d3;
+  --retro-amber: #ffb400;
+  --retro-red: #ff5a49;
+  --retro-blue: #4c8df6;
+  --retro-cream: #f8efe4;
+  --retro-grid: rgba(60, 49, 35, 0.1);
 }
 
 .dark {
@@ -140,18 +142,14 @@
     min-height: 100%;
     font-family: var(--font-retro-mono), monospace;
     background:
-      radial-gradient(circle at top left, rgba(255, 242, 204, 0.55), transparent 28%),
-      radial-gradient(circle at 85% 18%, rgba(47, 143, 148, 0.18), transparent 24%),
-      radial-gradient(circle at 72% 78%, rgba(213, 139, 61, 0.16), transparent 22%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 28%),
-      repeating-linear-gradient(
-        0deg,
-        rgba(255, 255, 255, 0.04),
-        rgba(255, 255, 255, 0.04) 1px,
-        rgba(0, 0, 0, 0) 1px,
-        rgba(0, 0, 0, 0) 3px
-      ),
-      linear-gradient(180deg, #c8c0aa 0%, #b4ab93 52%, #a59b82 100%);
+      radial-gradient(circle at 12% 12%, rgba(255, 180, 0, 0.18), transparent 18%),
+      radial-gradient(circle at 84% 18%, rgba(27, 162, 211, 0.16), transparent 20%),
+      radial-gradient(circle at 78% 78%, rgba(255, 90, 73, 0.12), transparent 18%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 18%),
+      linear-gradient(90deg, transparent 23px, var(--retro-grid) 24px, transparent 25px),
+      linear-gradient(transparent 23px, var(--retro-grid) 24px, transparent 25px),
+      linear-gradient(180deg, #fbf5ec 0%, #f2e7d9 100%);
+    background-size: auto, auto, auto, auto, 24px 24px, 24px 24px, auto;
     color: var(--retro-ink);
   }
 }
@@ -178,11 +176,11 @@
 @layer components {
   .retro-window {
     background: linear-gradient(180deg, var(--retro-panel) 0%, var(--retro-panel-dark) 100%);
-    border: 2px solid var(--retro-shadow-deep);
+    border: 3px solid var(--retro-shadow-deep);
     box-shadow:
       inset 2px 2px 0 var(--retro-highlight),
       inset -2px -2px 0 var(--retro-shadow),
-      6px 6px 0 rgba(23, 23, 22, 0.35);
+      8px 8px 0 rgba(23, 23, 22, 0.18);
   }
 
   .retro-inset {
@@ -194,8 +192,8 @@
   }
 
   .retro-button {
-    background: linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%);
-    border: 2px solid var(--retro-shadow-deep);
+    background: linear-gradient(180deg, #ffe485 0%, #ffb400 100%);
+    border: 3px solid var(--retro-shadow-deep);
     box-shadow:
       inset 2px 2px 0 var(--retro-highlight),
       inset -2px -2px 0 var(--retro-shadow);
@@ -216,7 +214,7 @@
   }
 
   .retro-button-danger {
-    background: linear-gradient(180deg, #c96d5b 0%, #934034 100%);
+    background: linear-gradient(180deg, #ff8a7a 0%, #ff5a49 100%);
     color: #fff5e8;
   }
 
@@ -231,10 +229,10 @@
   .retro-app-shell {
     position: relative;
     background:
-      linear-gradient(180deg, rgba(255, 248, 224, 0.18), transparent 20%),
-      linear-gradient(90deg, rgba(23, 23, 22, 0.08) 0, rgba(23, 23, 22, 0.08) 1px, transparent 1px, transparent 120px),
-      linear-gradient(0deg, rgba(23, 23, 22, 0.07) 0, rgba(23, 23, 22, 0.07) 1px, transparent 1px, transparent 120px);
-    background-size: auto, 120px 120px, 120px 120px;
+      linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 14%),
+      linear-gradient(90deg, rgba(23, 23, 22, 0.06) 0, rgba(23, 23, 22, 0.06) 1px, transparent 1px, transparent 112px),
+      linear-gradient(0deg, rgba(23, 23, 22, 0.06) 0, rgba(23, 23, 22, 0.06) 1px, transparent 1px, transparent 112px);
+    background-size: auto, 112px 112px, 112px 112px;
   }
 
   .retro-app-shell::before,
@@ -247,16 +245,16 @@
 
   .retro-app-shell::before {
     background:
-      radial-gradient(circle at 12% 10%, rgba(255, 242, 204, 0.22), transparent 16%),
-      radial-gradient(circle at 88% 20%, rgba(43, 98, 183, 0.16), transparent 18%),
-      radial-gradient(circle at 82% 78%, rgba(189, 88, 72, 0.14), transparent 16%);
+      radial-gradient(circle at 12% 10%, rgba(255, 180, 0, 0.14), transparent 16%),
+      radial-gradient(circle at 88% 20%, rgba(76, 141, 246, 0.16), transparent 18%),
+      radial-gradient(circle at 82% 78%, rgba(255, 90, 73, 0.12), transparent 16%);
     opacity: 0.9;
   }
 
   .retro-app-shell::after {
-    border: 2px solid rgba(36, 33, 26, 0.6);
+    border: 2px solid rgba(36, 33, 26, 0.45);
     box-shadow: inset 0 0 0 2px rgba(246, 241, 222, 0.2);
-    opacity: 0.45;
+    opacity: 0.35;
   }
 
   .retro-badge {
@@ -264,7 +262,7 @@
     align-items: center;
     gap: 8px;
     border: 2px solid var(--retro-shadow-deep);
-    background: linear-gradient(180deg, #f2ead3 0%, #cec4a9 100%);
+    background: linear-gradient(180deg, #fff8e8 0%, #ffe48b 100%);
     box-shadow:
       inset 2px 2px 0 var(--retro-highlight),
       inset -2px -2px 0 var(--retro-shadow);
@@ -282,5 +280,62 @@
     border: 1px solid var(--retro-shadow-deep);
     background: var(--retro-amber);
     box-shadow: 0 0 0 1px rgba(255, 248, 232, 0.35);
+  }
+
+  .retro-window-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    padding: 10px 14px;
+    border-bottom: 3px solid var(--retro-shadow-deep);
+    background: linear-gradient(90deg, var(--retro-amber) 0%, #ffd85c 100%);
+  }
+
+  .retro-window-titlebar.is-blue {
+    background: linear-gradient(90deg, #68c7ef 0%, #4c8df6 100%);
+  }
+
+  .retro-window-titlebar.is-red {
+    background: linear-gradient(90deg, #ff7f6f 0%, #ff5a49 100%);
+  }
+
+  .retro-window-titlebar.is-cream {
+    background: linear-gradient(90deg, #fff9ea 0%, #efe2ce 100%);
+  }
+
+  .retro-window-title {
+    font-family: var(--font-retro-display), sans-serif;
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .retro-window-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .retro-window-dot {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--retro-shadow-deep);
+    border-radius: 999px;
+    background: #fff8e8;
+  }
+
+  .retro-window-dot.is-yellow {
+    background: var(--retro-amber);
+  }
+
+  .retro-window-dot.is-blue {
+    background: var(--retro-cyan);
+  }
+
+  .retro-window-dot.is-red {
+    background: var(--retro-red);
   }
 }

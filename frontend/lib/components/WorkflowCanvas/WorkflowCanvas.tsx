@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FiPlus } from "react-icons/fi";
 import {
   ReactFlow,
   Node,
@@ -29,6 +30,7 @@ import '@xyflow/react/dist/style.css';
 import { Workflow, WorkflowNode, WorkflowEdge, NodeType, NodeConfig } from '../../types/workflow';
 import { NodeFactory } from '../../services/NodeFactory';
 import { CustomNode } from './CustomNode';
+import { nodePaletteItems } from '../NodePalette/nodePaletteData';
 import './WorkflowCanvas.css';
 
 type CanvasNodeData = WorkflowNode['data'] & {
@@ -57,10 +59,10 @@ const nodeTypes: NodeTypes = {
 };
 
 const animatedEdgeStyle = {
-  stroke: '#355248',
+  stroke: '#233548',
   strokeWidth: 3,
-  strokeDasharray: '10 8',
-  strokeLinecap: 'square' as const,
+  strokeDasharray: '12 8',
+  strokeLinecap: 'round' as const,
 };
 
 interface WorkflowCanvasProps {
@@ -79,8 +81,10 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   className = '',
 }) => {
   const nodeFactory = NodeFactory.getInstance();
-  const [editingNodeId, setEditingNodeId] = React.useState<string | null>(null);
-  const [selectionMode, setSelectionMode] = React.useState<SelectionMode>(SelectionMode.Partial);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>(SelectionMode.Partial);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const applyNodeDataUpdates = useCallback(
     (node: WorkflowNode, updates: Partial<WorkflowNode['data']>): WorkflowNode =>
@@ -394,6 +398,32 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     [nodeFactory, onWorkflowChange, setNodes, workflow]
   );
 
+  const createNodeAtPosition = useCallback(
+    (nodeType: NodeType, position?: { x: number; y: number }) => {
+      const workflowNode = nodeFactory.createNode(nodeType, {
+        position: position ?? {
+          x: 280 + workflow.nodes.length * 24,
+          y: 180 + workflow.nodes.length * 18,
+        },
+      });
+
+      const newNode: Node = {
+        id: workflowNode.id,
+        type: workflowNode.data.type,
+        position: workflowNode.position,
+        data: workflowNode.data,
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+
+      onWorkflowChange?.({
+        ...workflow,
+        nodes: [...workflow.nodes, workflowNode],
+      });
+    },
+    [nodeFactory, onWorkflowChange, setNodes, workflow]
+  );
+
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -401,6 +431,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
 
   return (
     <div
+      ref={canvasRef}
       className={`workflow-canvas ${className}`}
       style={{ height: '100%', width: '100%' }}
       onDrop={handleDrop}
@@ -418,11 +449,16 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         onPaneClick={() => {
           setEditingNodeId(null);
           onNodeSelect?.(null);
+          setIsPickerOpen(false);
         }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{
+          padding: 0.22,
+          minZoom: 0.2,
+        }}
         proOptions={{ hideAttribution: true }}
         className={isExecuting ? 'executing' : ''}
         selectionOnDrag
@@ -442,24 +478,40 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           <div
             style={{
               display: 'inline-flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
               gap: '6px',
-              padding: '8px',
-              border: '2px solid #24211a',
-              background: 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
-              boxShadow: 'inset 1px 1px 0 #f6f1de, inset -1px -1px 0 #7d7666',
+              padding: '10px',
+              border: '3px solid #24211a',
+              borderRadius: '18px',
+              background: 'linear-gradient(180deg, #fff8ea 0%, #ffe08c 100%)',
+              boxShadow: 'inset 1px 1px 0 #f6f1de, inset -1px -1px 0 #7d7666, 4px 4px 0 rgba(23,23,22,0.12)',
             }}
           >
+            <div
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: '#4b3d0d',
+                marginRight: '6px',
+              }}
+            >
+              Selection
+            </div>
             <button
               type="button"
               onClick={() => setSelectionMode(SelectionMode.Partial)}
               style={{
-                border: '2px solid #24211a',
+                border: '3px solid #24211a',
+                borderRadius: '12px',
                 background:
                   selectionMode === SelectionMode.Partial
-                    ? 'linear-gradient(180deg, #0f5759 0%, #08373a 100%)'
-                    : 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
+                    ? 'linear-gradient(180deg, #65c8ef 0%, #4c8df6 100%)'
+                    : 'linear-gradient(180deg, #fff8e8 0%, #f0dfc0 100%)',
                 color: selectionMode === SelectionMode.Partial ? '#fff8e8' : '#171716',
-                padding: '6px 8px',
+                padding: '8px 10px',
                 fontSize: '10px',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
@@ -473,13 +525,14 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
               type="button"
               onClick={() => setSelectionMode(SelectionMode.Full)}
               style={{
-                border: '2px solid #24211a',
+                border: '3px solid #24211a',
+                borderRadius: '12px',
                 background:
                   selectionMode === SelectionMode.Full
-                    ? 'linear-gradient(180deg, #0f5759 0%, #08373a 100%)'
-                    : 'linear-gradient(180deg, #eee7d1 0%, #c9c1aa 100%)',
+                    ? 'linear-gradient(180deg, #ff8a7a 0%, #ff5a49 100%)'
+                    : 'linear-gradient(180deg, #fff8e8 0%, #f0dfc0 100%)',
                 color: selectionMode === SelectionMode.Full ? '#fff8e8' : '#171716',
-                padding: '6px 8px',
+                padding: '8px 10px',
                 fontSize: '10px',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
@@ -491,9 +544,66 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             </button>
           </div>
         </Panel>
+        <Panel position="bottom-left" className="workflow-canvas-picker-panel">
+          <div className="workflow-canvas-picker-anchor">
+            <button
+              type="button"
+              className="workflow-canvas-plus"
+              onClick={() => setIsPickerOpen((current) => !current)}
+            >
+              <FiPlus aria-hidden="true" />
+            </button>
+            {isPickerOpen ? (
+              <div className="workflow-canvas-picker">
+                <div className="workflow-canvas-picker-header">
+                  <div>
+                    <div className="workflow-canvas-picker-eyebrow">Block picker</div>
+                    <div className="workflow-canvas-picker-title">Drag or click</div>
+                  </div>
+                  <button
+                    type="button"
+                    className="workflow-canvas-picker-close"
+                    onClick={() => setIsPickerOpen(false)}
+                  >
+                    x
+                  </button>
+                </div>
+                <div className="workflow-canvas-picker-grid">
+                  {nodePaletteItems.map((item) => (
+                    <div
+                      key={item.type}
+                      className="workflow-canvas-picker-item"
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.setData('application/reactflow', item.type);
+                        event.dataTransfer.setData('text/plain', item.type);
+                        event.dataTransfer.effectAllowed = 'move';
+                      }}
+                      onClick={() => {
+                        createNodeAtPosition(item.type);
+                        setIsPickerOpen(false);
+                      }}
+                    >
+                      <div
+                        className="workflow-canvas-picker-badge"
+                        style={{ color: item.color }}
+                      >
+                         <item.icon aria-hidden="true" />
+                      </div>
+                      <div className="workflow-canvas-picker-copy">
+                        <div className="workflow-canvas-picker-label">{item.label}</div>
+                        <div className="workflow-canvas-picker-description">{item.description}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </Panel>
         <Controls />
         <MiniMap />
-        <Background variant={BackgroundVariant.Dots} gap={18} size={1} color="#cbd5e1" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={2} color="rgba(35, 53, 72, 0.14)" />
       </ReactFlow>
     </div>
   );
