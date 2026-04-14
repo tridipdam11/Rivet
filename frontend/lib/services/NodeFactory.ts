@@ -6,6 +6,12 @@ import {
   WorkflowNode,
   NodeType,
   TriggerNode,
+  StartNode,
+  IfNode,
+  SwitchNode,
+  MergeNode,
+  WaitNode,
+  NoOpNode,
   AgentNode,
   PromptNode,
   KnowledgeNode,
@@ -21,6 +27,8 @@ import {
   ValidationResult,
   ValidationType,
   TriggerSource,
+  MergeStrategy,
+  DelayUnit,
   ComparisonOperator,
   KnowledgeSourceType,
   RetrievalMode,
@@ -58,6 +66,18 @@ export class NodeFactory {
     switch (type) {
       case NodeType.TRIGGER:
         return this.createTriggerNode(nodeId, options);
+      case NodeType.START:
+        return this.createStartNode(nodeId, options);
+      case NodeType.IF:
+        return this.createIfNode(nodeId, options);
+      case NodeType.SWITCH:
+        return this.createSwitchNode(nodeId, options);
+      case NodeType.MERGE:
+        return this.createMergeNode(nodeId, options);
+      case NodeType.WAIT:
+        return this.createWaitNode(nodeId, options);
+      case NodeType.NOOP:
+        return this.createNoOpNode(nodeId, options);
       case NodeType.AGENT:
         return this.createAgentNode(nodeId, options);
       case NodeType.PROMPT:
@@ -145,6 +165,58 @@ export class NodeFactory {
             nodeId: node.id,
           });
         }
+        break;
+      case NodeType.START:
+        if (!node.data.entryLabel) {
+          warnings.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Start entry label is empty.',
+            field: 'entryLabel',
+            nodeId: node.id,
+          });
+        }
+        break;
+      case NodeType.IF:
+        if (!node.data.condition) {
+          errors.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'IF condition is required.',
+            field: 'condition',
+            nodeId: node.id,
+          });
+        }
+        break;
+      case NodeType.SWITCH:
+        if (!node.data.expression) {
+          errors.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Switch expression is required.',
+            field: 'expression',
+            nodeId: node.id,
+          });
+        }
+        break;
+      case NodeType.MERGE:
+        if (!node.data.mergeStrategy) {
+          warnings.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Merge strategy is empty.',
+            field: 'mergeStrategy',
+            nodeId: node.id,
+          });
+        }
+        break;
+      case NodeType.WAIT:
+        if (node.data.delayAmount < 0) {
+          errors.push({
+            type: ValidationType.INVALID_TYPE,
+            message: 'Wait delay must be zero or greater.',
+            field: 'delayAmount',
+            nodeId: node.id,
+          });
+        }
+        break;
+      case NodeType.NOOP:
         break;
       case NodeType.AGENT:
         if (!node.data.model) {
@@ -295,6 +367,83 @@ export class NodeFactory {
     };
   }
 
+  private createStartNode(id: string, options: CreateNodeOptions): StartNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.START, options),
+        type: NodeType.START,
+        entryLabel: 'manual_start',
+      },
+    };
+  }
+
+  private createIfNode(id: string, options: CreateNodeOptions): IfNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.IF, options),
+        type: NodeType.IF,
+        condition: 'priority == "high"',
+        trueLabel: 'yes',
+        falseLabel: 'no',
+      },
+    };
+  }
+
+  private createSwitchNode(id: string, options: CreateNodeOptions): SwitchNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.SWITCH, options),
+        type: NodeType.SWITCH,
+        expression: 'ticket_type',
+        cases: ['billing', 'support', 'sales'],
+        defaultCase: 'default',
+      },
+    };
+  }
+
+  private createMergeNode(id: string, options: CreateNodeOptions): MergeNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.MERGE, options),
+        type: NodeType.MERGE,
+        mergeStrategy: MergeStrategy.WAIT_FOR_ALL,
+      },
+    };
+  }
+
+  private createWaitNode(id: string, options: CreateNodeOptions): WaitNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.WAIT, options),
+        type: NodeType.WAIT,
+        delayAmount: 5,
+        delayUnit: DelayUnit.MINUTES,
+      },
+    };
+  }
+
+  private createNoOpNode(id: string, options: CreateNodeOptions): NoOpNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.NOOP, options),
+        type: NodeType.NOOP,
+        note: 'Structural placeholder',
+      },
+    };
+  }
+
   private createAgentNode(id: string, options: CreateNodeOptions): AgentNode {
     return {
       id,
@@ -424,6 +573,18 @@ export class NodeFactory {
     switch (type) {
       case NodeType.TRIGGER:
         return 'Trigger';
+      case NodeType.START:
+        return 'Start';
+      case NodeType.IF:
+        return 'IF';
+      case NodeType.SWITCH:
+        return 'Switch';
+      case NodeType.MERGE:
+        return 'Merge';
+      case NodeType.WAIT:
+        return 'Wait';
+      case NodeType.NOOP:
+        return 'NoOp';
       case NodeType.AGENT:
         return 'Agent';
       case NodeType.PROMPT:

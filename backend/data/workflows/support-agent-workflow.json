@@ -140,20 +140,20 @@
     {
       "id": "approval-refund",
       "position": {
-        "x": 1377.8732394366195,
-        "y": 209.12676056338034
+        "x": 1233.8028169014087,
+        "y": -46.39436619718299
       },
       "data": {
         "config": {
           "isValid": true,
           "errors": []
         },
-        "label": "Refund approval",
-        "description": "Requires a human check before high-value refunds are sent.",
+        "label": "Refund approvaltwtww 23442323232323 232424 ",
+        "description": "Requires a human check before high-value refunds are sent.ww www wwww w",
         "type": "approval",
-        "approverType": "human",
+        "approverType": "team",
         "instructions": "Approve refunds over $500 before the agent sends the final response.",
-        "timeoutMinutes": 30
+        "timeoutMinutes": 3022
       }
     },
     {
@@ -264,7 +264,7 @@
     "description": "An AI agent workflow that retrieves knowledge, uses tools, connects third-party apps, and routes through human approval.",
     "version": 1,
     "createdAt": "2026-04-07T06:15:18.761000Z",
-    "updatedAt": "2026-04-07T06:22:28.333000Z",
+    "updatedAt": "2026-04-07T15:12:17.302000Z",
     "createdBy": "system",
     "tags": [
       "ai-agent",

@@ -40,6 +40,12 @@ type CanvasNodeData = WorkflowNode['data'] & {
 
 const nodeTypes: NodeTypes = {
   [NodeType.TRIGGER]: CustomNode,
+  [NodeType.START]: CustomNode,
+  [NodeType.IF]: CustomNode,
+  [NodeType.SWITCH]: CustomNode,
+  [NodeType.MERGE]: CustomNode,
+  [NodeType.WAIT]: CustomNode,
+  [NodeType.NOOP]: CustomNode,
   [NodeType.AGENT]: CustomNode,
   [NodeType.PROMPT]: CustomNode,
   [NodeType.KNOWLEDGE]: CustomNode,

@@ -13,6 +13,48 @@ interface NodePaletteItem {
 
 const nodeTypes: NodePaletteItem[] = [
   {
+    type: NodeType.START,
+    label: 'Start',
+    description: 'Entry point for a flow-control branch or a manually sequenced workflow segment.',
+    icon: 'ST',
+    color: '#0f766e',
+  },
+  {
+    type: NodeType.IF,
+    label: 'IF',
+    description: 'Conditionally route execution between true and false branches.',
+    icon: 'IF',
+    color: '#2563eb',
+  },
+  {
+    type: NodeType.SWITCH,
+    label: 'Switch',
+    description: 'Branch across multiple cases from one evaluated expression.',
+    icon: 'SW',
+    color: '#7c3aed',
+  },
+  {
+    type: NodeType.MERGE,
+    label: 'Merge',
+    description: 'Combine upstream branches back into one flow.',
+    icon: 'MG',
+    color: '#b45309',
+  },
+  {
+    type: NodeType.WAIT,
+    label: 'Wait',
+    description: 'Pause execution for a configured delay.',
+    icon: 'WT',
+    color: '#ca8a04',
+  },
+  {
+    type: NodeType.NOOP,
+    label: 'NoOp',
+    description: 'Do nothing and pass data through for layout or structure.',
+    icon: 'NP',
+    color: '#6b7280',
+  },
+  {
     type: NodeType.TRIGGER,
     label: 'Trigger',
     description: 'Start the workflow from chat, webhooks, schedules, or inbox events.',

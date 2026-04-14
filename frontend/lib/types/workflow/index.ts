@@ -18,6 +18,12 @@ export type {
 
 export type {
   TriggerNode,
+  StartNode,
+  IfNode,
+  SwitchNode,
+  MergeNode,
+  WaitNode,
+  NoOpNode,
   AgentNode,
   PromptNode,
   KnowledgeNode,
@@ -50,6 +56,8 @@ export {
 
 export {
   TriggerSource,
+  MergeStrategy,
+  DelayUnit,
   KnowledgeSourceType,
   RetrievalMode,
   ThirdPartyAppType,

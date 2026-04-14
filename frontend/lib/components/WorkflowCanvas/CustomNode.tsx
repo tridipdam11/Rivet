@@ -6,6 +6,8 @@ import {
   NodeData,
   NodeType,
   TriggerSource,
+  MergeStrategy,
+  DelayUnit,
   KnowledgeSourceType,
   RetrievalMode,
   ThirdPartyAppType,
@@ -46,6 +48,12 @@ const labelStyle: React.CSSProperties = {
 
 const nodeAppearance: Record<NodeType, { badge: string; color: string }> = {
   [NodeType.TRIGGER]: { badge: 'TR', color: '#0f766e' },
+  [NodeType.START]: { badge: 'ST', color: '#0f766e' },
+  [NodeType.IF]: { badge: 'IF', color: '#2563eb' },
+  [NodeType.SWITCH]: { badge: 'SW', color: '#7c3aed' },
+  [NodeType.MERGE]: { badge: 'MG', color: '#b45309' },
+  [NodeType.WAIT]: { badge: 'WT', color: '#ca8a04' },
+  [NodeType.NOOP]: { badge: 'NP', color: '#6b7280' },
   [NodeType.AGENT]: { badge: 'AI', color: '#1d4ed8' },
   [NodeType.PROMPT]: { badge: 'PR', color: '#7c3aed' },
   [NodeType.KNOWLEDGE]: { badge: 'KB', color: '#b45309' },
@@ -141,6 +149,106 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
               />
             </div>
           </>
+        );
+      case NodeType.START:
+        return (
+          <div>
+            <div style={labelStyle}>Entry label</div>
+            <input
+              className="nodrag"
+              value={String(nodeData.entryLabel ?? '')}
+              onChange={handleTextUpdate('entryLabel')}
+              placeholder="manual_start"
+              style={fieldStyle}
+            />
+          </div>
+        );
+      case NodeType.IF:
+        return (
+          <>
+            <div>
+              <div style={labelStyle}>Condition</div>
+              <input className="nodrag" value={String(nodeData.condition ?? '')} onChange={handleTextUpdate('condition')} style={fieldStyle} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div>
+                <div style={labelStyle}>True label</div>
+                <input className="nodrag" value={String(nodeData.trueLabel ?? '')} onChange={handleTextUpdate('trueLabel')} style={fieldStyle} />
+              </div>
+              <div>
+                <div style={labelStyle}>False label</div>
+                <input className="nodrag" value={String(nodeData.falseLabel ?? '')} onChange={handleTextUpdate('falseLabel')} style={fieldStyle} />
+              </div>
+            </div>
+          </>
+        );
+      case NodeType.SWITCH:
+        return (
+          <>
+            <div>
+              <div style={labelStyle}>Expression</div>
+              <input className="nodrag" value={String(nodeData.expression ?? '')} onChange={handleTextUpdate('expression')} style={fieldStyle} />
+            </div>
+            <div>
+              <div style={labelStyle}>Cases</div>
+              <input
+                className="nodrag"
+                value={Array.isArray(nodeData.cases) ? nodeData.cases.join(', ') : ''}
+                onChange={handleListUpdate('cases')}
+                placeholder="billing, support, sales"
+                style={fieldStyle}
+              />
+            </div>
+            <div>
+              <div style={labelStyle}>Default case</div>
+              <input className="nodrag" value={String(nodeData.defaultCase ?? '')} onChange={handleTextUpdate('defaultCase')} style={fieldStyle} />
+            </div>
+          </>
+        );
+      case NodeType.MERGE:
+        return (
+          <div>
+            <div style={labelStyle}>Merge strategy</div>
+            <select className="nodrag" value={String(nodeData.mergeStrategy ?? '')} onChange={handleTextUpdate('mergeStrategy')} style={fieldStyle}>
+              {Object.values(MergeStrategy).map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      case NodeType.WAIT:
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div>
+              <div style={labelStyle}>Delay</div>
+              <input className="nodrag" type="number" value={String(nodeData.delayAmount ?? 0)} onChange={handleNumberUpdate('delayAmount')} style={fieldStyle} />
+            </div>
+            <div>
+              <div style={labelStyle}>Unit</div>
+              <select className="nodrag" value={String(nodeData.delayUnit ?? '')} onChange={handleTextUpdate('delayUnit')} style={fieldStyle}>
+                {Object.values(DelayUnit).map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        );
+      case NodeType.NOOP:
+        return (
+          <div>
+            <div style={labelStyle}>Note</div>
+            <textarea
+              className="nodrag"
+              value={String(nodeData.note ?? '')}
+              onChange={handleTextUpdate('note')}
+              rows={3}
+              style={{ ...fieldStyle, resize: 'none' }}
+            />
+          </div>
         );
       case NodeType.AGENT:
         return (

@@ -49,7 +49,7 @@ def validate_workflow(workflow: Workflow) -> ValidationResult:
 
     inbound_targets = {edge.target for edge in workflow.edges}
     for node in workflow.nodes:
-        if node.data.type == NodeType.TRIGGER:
+        if node.data.type in {NodeType.TRIGGER, NodeType.START}:
             continue
         if node.id not in inbound_targets:
             warnings.append(

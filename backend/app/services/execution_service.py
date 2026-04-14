@@ -18,14 +18,20 @@ from app.models.execution import (
 from app.models.workflow import (
     AgentNodeData,
     ApprovalNodeData,
+    IfNodeData,
     IntegrationNodeData,
     KnowledgeNodeData,
     MemoryNodeData,
+    MergeNodeData,
+    NoOpNodeData,
     NodeType,
     OutputNodeData,
     PromptNodeData,
+    StartNodeData,
+    SwitchNodeData,
     ToolNodeData,
     TriggerNodeData,
+    WaitNodeData,
     Workflow,
     WorkflowNode,
 )
@@ -296,6 +302,18 @@ def _execute_node(node: WorkflowNode, node_input: dict[str, Any], shared_data: d
 
     if data.type == NodeType.TRIGGER:
         return _execute_trigger_node(data, node_input, shared_data)
+    if data.type == NodeType.START:
+        return _execute_start_node(data, node_input, shared_data)
+    if data.type == NodeType.IF:
+        return _execute_if_node(data, node_input, shared_data)
+    if data.type == NodeType.SWITCH:
+        return _execute_switch_node(data, node_input, shared_data)
+    if data.type == NodeType.MERGE:
+        return _execute_merge_node(data, node_input, shared_data)
+    if data.type == NodeType.WAIT:
+        return _execute_wait_node(data, node_input, shared_data)
+    if data.type == NodeType.NOOP:
+        return _execute_noop_node(data, node_input, shared_data)
     if data.type == NodeType.KNOWLEDGE:
         return _execute_knowledge_node(data, node_input, shared_data)
     if data.type == NodeType.PROMPT:
@@ -333,6 +351,91 @@ def _execute_trigger_node(
         "description": data.description,
         "payload": payload,
         "upstreamCount": len(node_input["upstream"]),
+    }
+
+
+def _execute_start_node(
+    data: StartNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    result = {
+        "entryLabel": data.entry_label,
+        "startedAt": datetime.now(timezone.utc).isoformat(),
+        "upstreamCount": len(node_input["upstream"]),
+    }
+    shared_data["start"] = result
+    return result
+
+
+def _execute_if_node(
+    data: IfNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    result = {
+        "condition": data.condition,
+        "trueLabel": data.true_label,
+        "falseLabel": data.false_label,
+        "selectedBranch": data.true_label,
+    }
+    shared_data["lastBranch"] = result
+    return result
+
+
+def _execute_switch_node(
+    data: SwitchNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    selected_case = data.cases[0] if data.cases else data.default_case
+    result = {
+        "expression": data.expression,
+        "cases": data.cases,
+        "defaultCase": data.default_case,
+        "selectedCase": selected_case,
+    }
+    shared_data["lastSwitch"] = result
+    return result
+
+
+def _execute_merge_node(
+    data: MergeNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    result = {
+        "mergeStrategy": data.merge_strategy,
+        "mergedNodeIds": list(node_input["upstream"].keys()),
+        "mergedCount": len(node_input["upstream"]),
+    }
+    shared_data["lastMerge"] = result
+    return result
+
+
+def _execute_wait_node(
+    data: WaitNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    result = {
+        "delayAmount": data.delay_amount,
+        "delayUnit": data.delay_unit,
+        "status": "scheduled",
+    }
+    shared_data["wait"] = result
+    return result
+
+
+def _execute_noop_node(
+    data: NoOpNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "note": data.note,
+        "status": "passed_through",
+        "upstreamKeys": list(node_input["upstream"].keys()),
     }
 
 

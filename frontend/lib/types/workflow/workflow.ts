@@ -5,6 +5,12 @@
 import { TriggerConfig } from './auth';
 import {
   TriggerNode,
+  StartNode,
+  IfNode,
+  SwitchNode,
+  MergeNode,
+  WaitNode,
+  NoOpNode,
   AgentNode,
   PromptNode,
   KnowledgeNode,
@@ -22,6 +28,12 @@ export interface Position {
 
 export enum NodeType {
   TRIGGER = 'trigger',
+  START = 'start',
+  IF = 'if',
+  SWITCH = 'switch',
+  MERGE = 'merge',
+  WAIT = 'wait',
+  NOOP = 'noop',
   AGENT = 'agent',
   PROMPT = 'prompt',
   KNOWLEDGE = 'knowledge',
@@ -107,6 +119,12 @@ export enum WorkflowStatus {
 
 export type WorkflowNode =
   | TriggerNode
+  | StartNode
+  | IfNode
+  | SwitchNode
+  | MergeNode
+  | WaitNode
+  | NoOpNode
   | AgentNode
   | PromptNode
   | KnowledgeNode

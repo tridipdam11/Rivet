@@ -11,6 +11,12 @@ from app.models.auth import RivetModel, TriggerConfig
 
 class NodeType(str, Enum):
     TRIGGER = "trigger"
+    START = "start"
+    IF = "if"
+    SWITCH = "switch"
+    MERGE = "merge"
+    WAIT = "wait"
+    NOOP = "noop"
     AGENT = "agent"
     PROMPT = "prompt"
     KNOWLEDGE = "knowledge"
@@ -137,6 +143,53 @@ class TriggerNodeData(BaseNodeData):
     filters: list[AgentCondition] = Field(default_factory=list)
 
 
+class StartNodeData(BaseNodeData):
+    type: Literal["start"]
+    entry_label: str
+
+
+class IfNodeData(BaseNodeData):
+    type: Literal["if"]
+    condition: str
+    true_label: str
+    false_label: str
+
+
+class SwitchNodeData(BaseNodeData):
+    type: Literal["switch"]
+    expression: str
+    cases: list[str] = Field(default_factory=list)
+    default_case: str
+
+
+class MergeStrategy(str, Enum):
+    WAIT_FOR_ALL = "wait_for_all"
+    FIRST_AVAILABLE = "first_available"
+    CONCAT = "concat"
+
+
+class MergeNodeData(BaseNodeData):
+    type: Literal["merge"]
+    merge_strategy: MergeStrategy
+
+
+class DelayUnit(str, Enum):
+    SECONDS = "seconds"
+    MINUTES = "minutes"
+    HOURS = "hours"
+
+
+class WaitNodeData(BaseNodeData):
+    type: Literal["wait"]
+    delay_amount: int
+    delay_unit: DelayUnit
+
+
+class NoOpNodeData(BaseNodeData):
+    type: Literal["noop"]
+    note: str
+
+
 class AgentNodeData(BaseNodeData):
     type: Literal["agent"]
     role: str
@@ -204,6 +257,12 @@ class OutputNodeData(BaseNodeData):
 NodeData: TypeAlias = Annotated[
     Union[
     TriggerNodeData,
+    StartNodeData,
+    IfNodeData,
+    SwitchNodeData,
+    MergeNodeData,
+    WaitNodeData,
+    NoOpNodeData,
     AgentNodeData,
     PromptNodeData,
     KnowledgeNodeData,

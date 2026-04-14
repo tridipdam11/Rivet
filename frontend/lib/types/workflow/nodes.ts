@@ -24,6 +24,77 @@ export enum TriggerSource {
   CRM = 'crm',
 }
 
+export interface StartNode extends BaseNode {
+  data: StartNodeData;
+}
+
+export interface StartNodeData extends NodeData {
+  type: NodeType.START;
+  entryLabel: string;
+}
+
+export interface IfNode extends BaseNode {
+  data: IfNodeData;
+}
+
+export interface IfNodeData extends NodeData {
+  type: NodeType.IF;
+  condition: string;
+  trueLabel: string;
+  falseLabel: string;
+}
+
+export interface SwitchNode extends BaseNode {
+  data: SwitchNodeData;
+}
+
+export interface SwitchNodeData extends NodeData {
+  type: NodeType.SWITCH;
+  expression: string;
+  cases: string[];
+  defaultCase: string;
+}
+
+export interface MergeNode extends BaseNode {
+  data: MergeNodeData;
+}
+
+export interface MergeNodeData extends NodeData {
+  type: NodeType.MERGE;
+  mergeStrategy: MergeStrategy;
+}
+
+export enum MergeStrategy {
+  WAIT_FOR_ALL = 'wait_for_all',
+  FIRST_AVAILABLE = 'first_available',
+  CONCAT = 'concat',
+}
+
+export interface WaitNode extends BaseNode {
+  data: WaitNodeData;
+}
+
+export interface WaitNodeData extends NodeData {
+  type: NodeType.WAIT;
+  delayAmount: number;
+  delayUnit: DelayUnit;
+}
+
+export enum DelayUnit {
+  SECONDS = 'seconds',
+  MINUTES = 'minutes',
+  HOURS = 'hours',
+}
+
+export interface NoOpNode extends BaseNode {
+  data: NoOpNodeData;
+}
+
+export interface NoOpNodeData extends NodeData {
+  type: NodeType.NOOP;
+  note: string;
+}
+
 export interface AgentNode extends BaseNode {
   data: AgentNodeData;
 }
