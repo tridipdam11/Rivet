@@ -93,6 +93,90 @@ class ExecutionServiceTests(unittest.TestCase):
         self.assertEqual(result.status, "error")
         self.assertEqual(result.errors[0].type, "workflow_error")
 
+    def test_execute_workflow_runs_iterator_code_and_mapper_nodes(self) -> None:
+        payload = build_workflow_payload()
+        payload["nodes"] = [
+            {
+                "id": "trigger-inbound",
+                "position": {"x": 80, "y": 220},
+                "data": {
+                    "type": "trigger",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Inbound request",
+                    "triggerSource": "chat",
+                    "eventName": "new.customer.message",
+                    "filters": [],
+                },
+            },
+            {
+                "id": "set-items",
+                "position": {"x": 220, "y": 220},
+                "data": {
+                    "type": "data_mapper",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Set items",
+                    "mode": "set",
+                    "variableKey": "prices",
+                    "value": [10, 20, 30],
+                    "mappings": [],
+                },
+            },
+            {
+                "id": "iterate-prices",
+                "position": {"x": 360, "y": 220},
+                "data": {
+                    "type": "iterator",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Iterate prices",
+                    "listPath": "sharedData.prices",
+                    "itemKey": "price",
+                    "indexKey": "priceIndex",
+                    "outputKey": "iteratedPrices",
+                    "maxItems": 10,
+                },
+            },
+            {
+                "id": "markup-price",
+                "position": {"x": 500, "y": 220},
+                "data": {
+                    "type": "code",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Markup price",
+                    "language": "python",
+                    "code": "result = sharedData['price'] * 1.2 + 5",
+                    "outputKey": "totalPrice",
+                },
+            },
+            {
+                "id": "map-output",
+                "position": {"x": 640, "y": 220},
+                "data": {
+                    "type": "data_mapper",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Map output",
+                    "mode": "map",
+                    "mappings": [
+                        {"source": "sharedData.totalPrice", "target": "invoice.total"},
+                        {"source": "sharedData.priceIndex", "target": "invoice.lastIndex"},
+                    ],
+                },
+            },
+        ]
+        payload["edges"] = [
+            {"id": "edge-trigger-set", "source": "trigger-inbound", "target": "set-items", "type": "smoothstep"},
+            {"id": "edge-set-iterate", "source": "set-items", "target": "iterate-prices", "type": "smoothstep"},
+            {"id": "edge-iterate-code", "source": "iterate-prices", "target": "markup-price", "type": "smoothstep"},
+            {"id": "edge-code-map", "source": "markup-price", "target": "map-output", "type": "smoothstep"},
+        ]
+        workflow = Workflow.model_validate(payload)
+
+        result = execute_workflow(workflow)
+
+        self.assertEqual(result.status, "success")
+        self.assertEqual(result.node_results["iterate-prices"].output["count"], 3)
+        self.assertEqual(result.node_results["markup-price"].output["result"], 41.0)
+        self.assertEqual(result.node_results["map-output"].output["mapped"]["invoice"]["total"], 41.0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,6 +8,8 @@ import {
   TriggerSource,
   MergeStrategy,
   DelayUnit,
+  ScriptLanguage,
+  DataMapperMode,
   KnowledgeSourceType,
   RetrievalMode,
   ThirdPartyAppType,
@@ -55,6 +57,9 @@ const nodeAppearance: Record<NodeType, { badge: string; color: string }> = {
   [NodeType.MERGE]: { badge: 'MG', color: '#b45309' },
   [NodeType.WAIT]: { badge: 'WT', color: '#ca8a04' },
   [NodeType.NOOP]: { badge: 'NP', color: '#6b7280' },
+  [NodeType.ITERATOR]: { badge: 'IT', color: '#0891b2' },
+  [NodeType.CODE]: { badge: 'CD', color: '#be123c' },
+  [NodeType.DATA_MAPPER]: { badge: 'DM', color: '#4f46e5' },
   [NodeType.AGENT]: { badge: 'AI', color: '#1d4ed8' },
   [NodeType.PROMPT]: { badge: 'PR', color: '#7c3aed' },
   [NodeType.KNOWLEDGE]: { badge: 'KB', color: '#b45309' },
@@ -251,6 +256,110 @@ export const CustomNode: React.FC<NodeProps> = ({ id, data, selected }) => {
               style={{ ...fieldStyle, resize: 'none' }}
             />
           </div>
+        );
+      case NodeType.ITERATOR:
+        return (
+          <>
+            <div>
+              <div style={labelStyle}>List path</div>
+              <input className="nodrag" value={String(nodeData.listPath ?? '')} onChange={handleTextUpdate('listPath')} placeholder="upstream.search.documents" style={fieldStyle} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div>
+                <div style={labelStyle}>Item key</div>
+                <input className="nodrag" value={String(nodeData.itemKey ?? '')} onChange={handleTextUpdate('itemKey')} style={fieldStyle} />
+              </div>
+              <div>
+                <div style={labelStyle}>Index key</div>
+                <input className="nodrag" value={String(nodeData.indexKey ?? '')} onChange={handleTextUpdate('indexKey')} style={fieldStyle} />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div>
+                <div style={labelStyle}>Output key</div>
+                <input className="nodrag" value={String(nodeData.outputKey ?? '')} onChange={handleTextUpdate('outputKey')} style={fieldStyle} />
+              </div>
+              <div>
+                <div style={labelStyle}>Max items</div>
+                <input className="nodrag" type="number" value={String(nodeData.maxItems ?? 0)} onChange={handleNumberUpdate('maxItems')} style={fieldStyle} />
+              </div>
+            </div>
+          </>
+        );
+      case NodeType.CODE:
+        return (
+          <>
+            <div>
+              <div style={labelStyle}>Language</div>
+              <select className="nodrag" value={String(nodeData.language)} onChange={handleTextUpdate('language')} style={fieldStyle}>
+                {Object.values(ScriptLanguage).map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <div style={labelStyle}>Code</div>
+              <textarea
+                className="nodrag"
+                value={String(nodeData.code ?? '')}
+                onChange={handleTextUpdate('code')}
+                rows={6}
+                style={{ ...fieldStyle, resize: 'none', fontFamily: 'monospace' }}
+              />
+            </div>
+            <div>
+              <div style={labelStyle}>Output key</div>
+              <input className="nodrag" value={String(nodeData.outputKey ?? '')} onChange={handleTextUpdate('outputKey')} style={fieldStyle} />
+            </div>
+          </>
+        );
+      case NodeType.DATA_MAPPER:
+        return (
+          <>
+            <div>
+              <div style={labelStyle}>Mode</div>
+              <select className="nodrag" value={String(nodeData.mode)} onChange={handleTextUpdate('mode')} style={fieldStyle}>
+                {Object.values(DataMapperMode).map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <div style={labelStyle}>Variable key</div>
+              <input className="nodrag" value={String(nodeData.variableKey ?? '')} onChange={handleTextUpdate('variableKey')} placeholder="customerEmail" style={fieldStyle} />
+            </div>
+            <div>
+              <div style={labelStyle}>Source path</div>
+              <input className="nodrag" value={String(nodeData.sourcePath ?? '')} onChange={handleTextUpdate('sourcePath')} placeholder="sharedData.trigger.eventName" style={fieldStyle} />
+            </div>
+            <div>
+              <div style={labelStyle}>Mappings</div>
+              <textarea
+                className="nodrag"
+                value={Array.isArray(nodeData.mappings) ? nodeData.mappings.map((mapping) => `${mapping.source}:${mapping.target}`).join(', ') : ''}
+                onChange={(event) => {
+                  nodeData.onUpdate?.(id, {
+                    mappings: event.target.value
+                      .split(',')
+                      .map((item) => item.trim())
+                      .filter(Boolean)
+                      .map((item) => {
+                        const [source, target] = item.split(':').map((part) => part.trim());
+                        return { source, target };
+                      })
+                      .filter((mapping) => mapping.source && mapping.target),
+                  });
+                }}
+                placeholder="sharedData.trigger.eventName:event.name"
+                rows={3}
+                style={{ ...fieldStyle, resize: 'none' }}
+              />
+            </div>
+          </>
         );
       case NodeType.AGENT:
         return (

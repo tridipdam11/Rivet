@@ -12,6 +12,9 @@ import {
   MergeNode,
   WaitNode,
   NoOpNode,
+  IteratorNode,
+  CodeNode,
+  DataMapperNode,
   AgentNode,
   PromptNode,
   KnowledgeNode,
@@ -29,6 +32,8 @@ import {
   TriggerSource,
   MergeStrategy,
   DelayUnit,
+  ScriptLanguage,
+  DataMapperMode,
   ComparisonOperator,
   KnowledgeSourceType,
   RetrievalMode,
@@ -78,6 +83,12 @@ export class NodeFactory {
         return this.createWaitNode(nodeId, options);
       case NodeType.NOOP:
         return this.createNoOpNode(nodeId, options);
+      case NodeType.ITERATOR:
+        return this.createIteratorNode(nodeId, options);
+      case NodeType.CODE:
+        return this.createCodeNode(nodeId, options);
+      case NodeType.DATA_MAPPER:
+        return this.createDataMapperNode(nodeId, options);
       case NodeType.AGENT:
         return this.createAgentNode(nodeId, options);
       case NodeType.PROMPT:
@@ -217,6 +228,60 @@ export class NodeFactory {
         }
         break;
       case NodeType.NOOP:
+        break;
+      case NodeType.ITERATOR:
+        if (!node.data.listPath) {
+          errors.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Iterator list path is required.',
+            field: 'listPath',
+            nodeId: node.id,
+          });
+        }
+        if (node.data.maxItems <= 0) {
+          errors.push({
+            type: ValidationType.INVALID_TYPE,
+            message: 'Iterator max items must be greater than zero.',
+            field: 'maxItems',
+            nodeId: node.id,
+          });
+        }
+        break;
+      case NodeType.CODE:
+        if (!node.data.code) {
+          errors.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Code snippet is required.',
+            field: 'code',
+            nodeId: node.id,
+          });
+        }
+        if (!node.data.outputKey) {
+          errors.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Code output key is required.',
+            field: 'outputKey',
+            nodeId: node.id,
+          });
+        }
+        break;
+      case NodeType.DATA_MAPPER:
+        if (node.data.mode === DataMapperMode.SET && !node.data.variableKey) {
+          errors.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Data mapper variable key is required.',
+            field: 'variableKey',
+            nodeId: node.id,
+          });
+        }
+        if (node.data.mode === DataMapperMode.MAP && node.data.mappings.length === 0) {
+          errors.push({
+            type: ValidationType.REQUIRED_FIELD_MISSING,
+            message: 'Data mapper needs at least one mapping.',
+            field: 'mappings',
+            nodeId: node.id,
+          });
+        }
         break;
       case NodeType.AGENT:
         if (!node.data.model) {
@@ -444,6 +509,54 @@ export class NodeFactory {
     };
   }
 
+  private createIteratorNode(id: string, options: CreateNodeOptions): IteratorNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.ITERATOR, options),
+        type: NodeType.ITERATOR,
+        listPath: 'upstream.knowledge.documents',
+        itemKey: 'currentItem',
+        indexKey: 'currentIndex',
+        outputKey: 'iteratorItems',
+        maxItems: 100,
+      },
+    };
+  }
+
+  private createCodeNode(id: string, options: CreateNodeOptions): CodeNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.CODE, options),
+        type: NodeType.CODE,
+        language: ScriptLanguage.PYTHON,
+        code: 'result = sharedData.get("price", 0) * 1.2',
+        outputKey: 'scriptResult',
+      },
+    };
+  }
+
+  private createDataMapperNode(id: string, options: CreateNodeOptions): DataMapperNode {
+    return {
+      id,
+      position: options.position,
+      data: {
+        ...this.createBaseNodeData(NodeType.DATA_MAPPER, options),
+        type: NodeType.DATA_MAPPER,
+        mode: DataMapperMode.MAP,
+        mappings: [
+          {
+            source: 'sharedData.trigger.eventName',
+            target: 'event.name',
+          },
+        ],
+      },
+    };
+  }
+
   private createAgentNode(id: string, options: CreateNodeOptions): AgentNode {
     return {
       id,
@@ -585,6 +698,12 @@ export class NodeFactory {
         return 'Wait';
       case NodeType.NOOP:
         return 'NoOp';
+      case NodeType.ITERATOR:
+        return 'Iterator';
+      case NodeType.CODE:
+        return 'Code';
+      case NodeType.DATA_MAPPER:
+        return 'Data Mapper';
       case NodeType.AGENT:
         return 'Agent';
       case NodeType.PROMPT:

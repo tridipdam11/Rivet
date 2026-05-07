@@ -95,6 +95,59 @@ export interface NoOpNodeData extends NodeData {
   note: string;
 }
 
+export interface IteratorNode extends BaseNode {
+  data: IteratorNodeData;
+}
+
+export interface IteratorNodeData extends NodeData {
+  type: NodeType.ITERATOR;
+  listPath: string;
+  itemKey: string;
+  indexKey: string;
+  outputKey: string;
+  maxItems: number;
+}
+
+export interface CodeNode extends BaseNode {
+  data: CodeNodeData;
+}
+
+export interface CodeNodeData extends NodeData {
+  type: NodeType.CODE;
+  language: ScriptLanguage;
+  code: string;
+  outputKey: string;
+}
+
+export enum ScriptLanguage {
+  PYTHON = 'python',
+  JAVASCRIPT = 'javascript',
+}
+
+export interface DataMapperNode extends BaseNode {
+  data: DataMapperNodeData;
+}
+
+export interface DataMapperNodeData extends NodeData {
+  type: NodeType.DATA_MAPPER;
+  mode: DataMapperMode;
+  variableKey?: string;
+  sourcePath?: string;
+  value?: unknown;
+  mappings: DataMapping[];
+}
+
+export enum DataMapperMode {
+  SET = 'set',
+  MAP = 'map',
+}
+
+export interface DataMapping {
+  source: string;
+  target: string;
+  default?: unknown;
+}
+
 export interface AgentNode extends BaseNode {
   data: AgentNodeData;
 }

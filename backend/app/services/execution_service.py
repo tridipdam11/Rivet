@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import subprocess
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -18,8 +20,11 @@ from app.models.execution import (
 from app.models.workflow import (
     AgentNodeData,
     ApprovalNodeData,
+    CodeNodeData,
+    DataMapperNodeData,
     IfNodeData,
     IntegrationNodeData,
+    IteratorNodeData,
     KnowledgeNodeData,
     MemoryNodeData,
     MergeNodeData,
@@ -314,6 +319,12 @@ def _execute_node(node: WorkflowNode, node_input: dict[str, Any], shared_data: d
         return _execute_wait_node(data, node_input, shared_data)
     if data.type == NodeType.NOOP:
         return _execute_noop_node(data, node_input, shared_data)
+    if data.type == NodeType.ITERATOR:
+        return _execute_iterator_node(data, node_input, shared_data)
+    if data.type == NodeType.CODE:
+        return _execute_code_node(data, node_input, shared_data)
+    if data.type == NodeType.DATA_MAPPER:
+        return _execute_data_mapper_node(data, node_input, shared_data)
     if data.type == NodeType.KNOWLEDGE:
         return _execute_knowledge_node(data, node_input, shared_data)
     if data.type == NodeType.PROMPT:
@@ -439,6 +450,98 @@ def _execute_noop_node(
     }
 
 
+def _execute_iterator_node(
+    data: IteratorNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    items = _resolve_path(data.list_path, node_input, shared_data)
+    if items is None and not data.list_path:
+        items = _first_list_value(node_input["upstream"].values())
+    if not isinstance(items, list):
+        raise ValueError(f"Iterator list path '{data.list_path}' did not resolve to a list.")
+    if len(items) > data.max_items:
+        raise ValueError(f"Iterator received {len(items)} items, exceeding maxItems {data.max_items}.")
+
+    iterations = [
+        {
+            data.index_key: index,
+            data.item_key: item,
+        }
+        for index, item in enumerate(items)
+    ]
+    shared_data[data.output_key] = items
+    shared_data["iterator"] = {
+        "itemKey": data.item_key,
+        "indexKey": data.index_key,
+        "outputKey": data.output_key,
+        "count": len(items),
+    }
+    if items:
+        shared_data[data.item_key] = items[-1]
+        shared_data[data.index_key] = len(items) - 1
+
+    return {
+        "listPath": data.list_path,
+        "itemKey": data.item_key,
+        "indexKey": data.index_key,
+        "outputKey": data.output_key,
+        "count": len(items),
+        "items": items,
+        "iterations": iterations,
+    }
+
+
+def _execute_code_node(
+    data: CodeNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    if data.language == "python":
+        result = _execute_python_snippet(data.code, node_input, shared_data)
+    elif data.language == "javascript":
+        result = _execute_javascript_snippet(data.code, node_input, shared_data)
+    else:
+        raise ValueError(f"Unsupported script language '{data.language}'.")
+
+    shared_data[data.output_key] = result
+    return {
+        "language": data.language,
+        "outputKey": data.output_key,
+        "result": result,
+    }
+
+
+def _execute_data_mapper_node(
+    data: DataMapperNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+) -> dict[str, Any]:
+    if data.mode == "set":
+        if not data.variable_key:
+            raise ValueError("Data mapper set mode requires variableKey.")
+        value = data.value if data.source_path is None else _resolve_path(data.source_path, node_input, shared_data)
+        shared_data[data.variable_key] = value
+        return {
+            "mode": data.mode,
+            "variableKey": data.variable_key,
+            "value": value,
+        }
+
+    mapped: dict[str, Any] = {}
+    for mapping in data.mappings:
+        value = _resolve_path(mapping.source, node_input, shared_data)
+        if value is None:
+            value = mapping.default
+        _assign_path(mapped, mapping.target, value)
+
+    shared_data.setdefault("mappedData", {}).update(mapped)
+    return {
+        "mode": data.mode,
+        "mapped": mapped,
+    }
+
+
 def _execute_knowledge_node(
     data: KnowledgeNodeData,
     node_input: dict[str, Any],
@@ -486,10 +589,14 @@ def _execute_agent_node(
     node_input: dict[str, Any],
     shared_data: dict[str, Any],
 ) -> dict[str, Any]:
-    prompt_context = _first_matching_value(node_input["upstream"].values(), "renderedPrompt") or shared_data.get(
-        "agent_brief"
-    )
+    prompt_context = _first_matching_value(node_input["upstream"].values(), "renderedPrompt")
     knowledge_context = _collect_field_values(node_input["upstream"].values(), "documents")
+    
+    messages = [
+       {"role": "system", "content": f"{data.system_prompt}\n\nContext: {knowledge_context}"},
+       {"role": "user", "content": prompt_context}  
+    ]
+
     decision = {
         "role": data.role,
         "model": data.model,
@@ -607,6 +714,126 @@ def _resolve_input_variable(variable: str, upstream: dict[str, Any], shared_data
             return payload[variable]
 
     return f"<missing:{variable}>"
+
+
+def _resolve_path(path: str, node_input: dict[str, Any], shared_data: dict[str, Any]) -> Any:
+    if not path:
+        return None
+
+    roots = {
+        "input": node_input,
+        "upstream": node_input["upstream"],
+        "sharedData": shared_data,
+        "shared": shared_data,
+    }
+    head, *tail = path.split(".")
+    if head in roots:
+        return _read_path(roots[head], tail)
+    if path in shared_data:
+        return shared_data[path]
+
+    upstream_value = _read_path(node_input["upstream"], path.split("."))
+    if upstream_value is not None:
+        return upstream_value
+    return _read_path(shared_data, path.split("."))
+
+
+def _read_path(value: Any, parts: list[str]) -> Any:
+    current = value
+    for part in parts:
+        if isinstance(current, dict):
+            current = current.get(part)
+        elif isinstance(current, list) and part.isdigit():
+            index = int(part)
+            current = current[index] if index < len(current) else None
+        else:
+            return None
+        if current is None:
+            return None
+    return current
+
+
+def _assign_path(target: dict[str, Any], path: str, value: Any) -> None:
+    parts = [part for part in path.split(".") if part]
+    if not parts:
+        return
+
+    current = target
+    for part in parts[:-1]:
+        child = current.get(part)
+        if not isinstance(child, dict):
+            child = {}
+            current[part] = child
+        current = child
+    current[parts[-1]] = value
+
+
+def _execute_python_snippet(code: str, node_input: dict[str, Any], shared_data: dict[str, Any]) -> Any:
+    namespace = {
+        "input": node_input,
+        "upstream": node_input["upstream"],
+        "sharedData": shared_data,
+        "shared": shared_data,
+        "result": None,
+    }
+    safe_builtins = {
+        "abs": abs,
+        "bool": bool,
+        "dict": dict,
+        "float": float,
+        "int": int,
+        "len": len,
+        "list": list,
+        "max": max,
+        "min": min,
+        "round": round,
+        "str": str,
+        "sum": sum,
+    }
+    exec(code, {"__builtins__": safe_builtins}, namespace)
+    return namespace.get("result")
+
+
+def _execute_javascript_snippet(code: str, node_input: dict[str, Any], shared_data: dict[str, Any]) -> Any:
+    wrapper = """
+const fs = require('fs');
+const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
+const input = payload.input;
+const upstream = input.upstream;
+const sharedData = payload.sharedData;
+let result;
+Promise.resolve((async () => {
+  %s
+  return result;
+})()).then((value) => {
+  process.stdout.write(JSON.stringify(value === undefined ? null : value));
+}).catch((error) => {
+  console.error(error && error.message ? error.message : String(error));
+  process.exit(1);
+});
+""" % "\n  ".join(code.splitlines())
+    completed = subprocess.run(
+        ["node", "-e", wrapper],
+        input=json.dumps({"input": node_input, "sharedData": shared_data}),
+        capture_output=True,
+        text=True,
+        timeout=2,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise ValueError(completed.stderr.strip() or "JavaScript snippet failed.")
+    return json.loads(completed.stdout or "null")
+
+
+def _first_list_value(values: Any) -> list[Any] | None:
+    for value in values:
+        if isinstance(value, list):
+            return value
+        if isinstance(value, dict):
+            for nested in value.values():
+                if isinstance(nested, list):
+                    return nested
+    return None
 
 
 def _first_matching_value(values: Any, key: str) -> Any:

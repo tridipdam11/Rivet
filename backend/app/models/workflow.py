@@ -17,6 +17,9 @@ class NodeType(str, Enum):
     MERGE = "merge"
     WAIT = "wait"
     NOOP = "noop"
+    ITERATOR = "iterator"
+    CODE = "code"
+    DATA_MAPPER = "data_mapper"
     AGENT = "agent"
     PROMPT = "prompt"
     KNOWLEDGE = "knowledge"
@@ -190,6 +193,47 @@ class NoOpNodeData(BaseNodeData):
     note: str
 
 
+class ScriptLanguage(str, Enum):
+    PYTHON = "python"
+    JAVASCRIPT = "javascript"
+
+
+class CodeNodeData(BaseNodeData):
+    type: Literal["code"]
+    language: ScriptLanguage
+    code: str
+    output_key: str
+
+
+class IteratorNodeData(BaseNodeData):
+    type: Literal["iterator"]
+    list_path: str
+    item_key: str = "currentItem"
+    index_key: str = "currentIndex"
+    output_key: str = "iteratorItems"
+    max_items: int = 100
+
+
+class DataMapperMode(str, Enum):
+    SET = "set"
+    MAP = "map"
+
+
+class DataMapping(RivetModel):
+    source: str
+    target: str
+    default: Any | None = None
+
+
+class DataMapperNodeData(BaseNodeData):
+    type: Literal["data_mapper"]
+    mode: DataMapperMode
+    variable_key: str | None = None
+    source_path: str | None = None
+    value: Any | None = None
+    mappings: list[DataMapping] = Field(default_factory=list)
+
+
 class AgentNodeData(BaseNodeData):
     type: Literal["agent"]
     role: str
@@ -263,6 +307,9 @@ NodeData: TypeAlias = Annotated[
     MergeNodeData,
     WaitNodeData,
     NoOpNodeData,
+    IteratorNodeData,
+    CodeNodeData,
+    DataMapperNodeData,
     AgentNodeData,
     PromptNodeData,
     KnowledgeNodeData,

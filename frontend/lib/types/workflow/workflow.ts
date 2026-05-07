@@ -11,6 +11,9 @@ import {
   MergeNode,
   WaitNode,
   NoOpNode,
+  IteratorNode,
+  CodeNode,
+  DataMapperNode,
   AgentNode,
   PromptNode,
   KnowledgeNode,
@@ -34,6 +37,9 @@ export enum NodeType {
   MERGE = 'merge',
   WAIT = 'wait',
   NOOP = 'noop',
+  ITERATOR = 'iterator',
+  CODE = 'code',
+  DATA_MAPPER = 'data_mapper',
   AGENT = 'agent',
   PROMPT = 'prompt',
   KNOWLEDGE = 'knowledge',
@@ -125,6 +131,9 @@ export type WorkflowNode =
   | MergeNode
   | WaitNode
   | NoOpNode
+  | IteratorNode
+  | CodeNode
+  | DataMapperNode
   | AgentNode
   | PromptNode
   | KnowledgeNode

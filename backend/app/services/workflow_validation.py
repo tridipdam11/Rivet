@@ -59,5 +59,53 @@ def validate_workflow(workflow: Workflow) -> ValidationResult:
                     node_id=node.id,
                 )
             )
+        if node.data.type == NodeType.ITERATOR:
+            if node.data.max_items <= 0:
+                errors.append(
+                    ValidationError(
+                        type=ValidationType.INVALID_TYPE,
+                        message="Iterator maxItems must be greater than zero.",
+                        field="maxItems",
+                        node_id=node.id,
+                    )
+                )
+        if node.data.type == NodeType.CODE:
+            if not node.data.code.strip():
+                errors.append(
+                    ValidationError(
+                        type=ValidationType.REQUIRED_FIELD_MISSING,
+                        message="Code snippet is required.",
+                        field="code",
+                        node_id=node.id,
+                    )
+                )
+            if not node.data.output_key:
+                errors.append(
+                    ValidationError(
+                        type=ValidationType.REQUIRED_FIELD_MISSING,
+                        message="Code outputKey is required.",
+                        field="outputKey",
+                        node_id=node.id,
+                    )
+                )
+        if node.data.type == NodeType.DATA_MAPPER:
+            if node.data.mode == "set" and not node.data.variable_key:
+                errors.append(
+                    ValidationError(
+                        type=ValidationType.REQUIRED_FIELD_MISSING,
+                        message="Data mapper set mode requires variableKey.",
+                        field="variableKey",
+                        node_id=node.id,
+                    )
+                )
+            if node.data.mode == "map" and not node.data.mappings:
+                errors.append(
+                    ValidationError(
+                        type=ValidationType.REQUIRED_FIELD_MISSING,
+                        message="Data mapper map mode requires at least one mapping.",
+                        field="mappings",
+                        node_id=node.id,
+                    )
+                )
 
     return ValidationResult(is_valid=not errors, errors=errors, warnings=warnings)
