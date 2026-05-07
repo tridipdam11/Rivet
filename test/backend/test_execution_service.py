@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from app.models.workflow import Workflow
 from app.services.execution_service import execute_workflow
+from app.services.llm_services import LLMResponse
 
 
 def build_workflow_payload() -> dict:
@@ -176,6 +178,75 @@ class ExecutionServiceTests(unittest.TestCase):
         self.assertEqual(result.node_results["iterate-prices"].output["count"], 3)
         self.assertEqual(result.node_results["markup-price"].output["result"], 41.0)
         self.assertEqual(result.node_results["map-output"].output["mapped"]["invoice"]["total"], 41.0)
+
+    @patch("app.services.execution_service.call_llm_provider")
+    def test_execute_workflow_with_agent_node(self, mock_call_llm) -> None:
+        mock_call_llm.return_value = LLMResponse(
+            content="Hello! I am your AI assistant.",
+            tool_calls=[],
+            usage={"total_tokens": 10},
+            raw_response={}
+        )
+
+        payload = build_workflow_payload()
+        payload["nodes"] = [
+            {
+                "id": "trigger-inbound",
+                "position": {"x": 80, "y": 220},
+                "data": {
+                    "type": "trigger",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Inbound request",
+                    "triggerSource": "chat",
+                    "eventName": "new.customer.message",
+                    "filters": [],
+                },
+            },
+            {
+                "id": "prompt-brief",
+                "position": {"x": 360, "y": 330},
+                "data": {
+                    "type": "prompt",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Prompt brief",
+                    "promptTemplate": "Analyze: {customer_message}",
+                    "inputVariables": ["customer_message"],
+                    "outputKey": "renderedPrompt",
+                },
+            },
+            {
+                "id": "agent-solver",
+                "position": {"x": 600, "y": 330},
+                "data": {
+                    "type": "agent",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "AI Agent",
+                    "role": "support-agent",
+                    "model": "gpt-4o",
+                    "system_prompt": "You are a helpful assistant.",
+                    "temperature": 0.7,
+                    "max_steps": 5,
+                    "allowed_tools": [],
+                },
+            },
+        ]
+        payload["edges"] = [
+            {"id": "e1", "source": "trigger-inbound", "target": "prompt-brief"},
+            {"id": "e2", "source": "prompt-brief", "target": "agent-solver"},
+        ]
+        workflow = Workflow.model_validate(payload)
+
+        result = execute_workflow(workflow)
+
+        self.assertEqual(result.status, "success")
+        self.assertIn("agent-solver", result.node_results)
+        self.assertEqual(result.node_results["agent-solver"].output["content"], "Hello! I am your AI assistant.")
+
+        # Verify call_llm_provider was called with correct parameters
+        mock_call_llm.assert_called_once()
+        args, kwargs = mock_call_llm.call_args
+        self.assertEqual(kwargs["model"], "gpt-4o")
+        self.assertEqual(kwargs["temperature"], 0.7)
 
 
 if __name__ == "__main__":

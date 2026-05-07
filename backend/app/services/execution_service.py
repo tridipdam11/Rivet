@@ -40,6 +40,7 @@ from app.models.workflow import (
     Workflow,
     WorkflowNode,
 )
+from app.services.llm_services import call_llm_provider
 from app.services.workflow_validation import validate_workflow
 
 
@@ -592,22 +593,39 @@ def _execute_agent_node(
     prompt_context = _first_matching_value(node_input["upstream"].values(), "renderedPrompt")
     knowledge_context = _collect_field_values(node_input["upstream"].values(), "documents")
     
+    # Construct conversation history
     messages = [
        {"role": "system", "content": f"{data.system_prompt}\n\nContext: {knowledge_context}"},
        {"role": "user", "content": prompt_context}  
     ]
 
+    # For now, default to OpenAI as it's the only supported provider in llm_services.py
+    # and we pass tools as empty since we need a registry to convert tool names to JSON schemas.
+    response = call_llm_provider(
+        provider="openai",
+        model=data.model,
+        messages=messages,
+        temperature=data.temperature,
+    )
+
     decision = {
         "role": data.role,
         "model": data.model,
+        "content": response.content,
+        "toolCalls": response.tool_calls,
+        "usage": response.usage,
         "systemPrompt": data.system_prompt,
         "maxSteps": data.max_steps,
         "usedPrompt": prompt_context,
         "knowledgeHits": len(knowledge_context),
         "allowedTools": data.allowed_tools,
-        "decision": "proceed_with_tools" if data.allowed_tools else "respond_directly",
+        "decision": "proceed_with_tools" if response.tool_calls else "respond_directly",
     }
+    
     shared_data["agentDecision"] = decision
+    # Also expose the content directly for prompt nodes or output nodes
+    shared_data["lastAgentResponse"] = response.content
+    
     return decision
 
 
