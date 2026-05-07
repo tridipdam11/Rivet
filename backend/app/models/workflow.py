@@ -26,6 +26,7 @@ class NodeType(str, Enum):
     INTEGRATION = "integration"
     TOOL = "tool"
     MEMORY = "memory"
+    LOOP = "loop"  # executes a subgraph in a loop for each item in a list
     APPROVAL = "approval"
     OUTPUT = "output"
 
@@ -234,6 +235,17 @@ class DataMapperNodeData(BaseNodeData):
     mappings: list[DataMapping] = Field(default_factory=list)
 
 
+class LoopNodeData(BaseNodeData):
+    type: Literal["loop"]
+    list_path: str
+    item_key: str = "currentItem"
+    index_key: str = "currentIndex"
+    output_key: str = "loopResults"
+    max_items: int = 100
+    loop_body_node_ids: list[str] = Field(default_factory=list)
+    loop_output_node_id: str | None = None
+
+
 class AgentNodeData(BaseNodeData):
     type: Literal["agent"]
     role: str
@@ -273,6 +285,7 @@ class ToolNodeData(BaseNodeData):
     tool_type: ToolType
     endpoint: str | None = None
     action: str
+    parameters_schema: dict[str, Any] = Field(default_factory=dict)
     timeout_ms: int | None = None
     retries: int
 
@@ -308,6 +321,7 @@ NodeData: TypeAlias = Annotated[
     WaitNodeData,
     NoOpNodeData,
     IteratorNodeData,
+    LoopNodeData,
     CodeNodeData,
     DataMapperNodeData,
     AgentNodeData,

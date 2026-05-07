@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import uuid4
 
+import requests
+
 from app.models.execution import (
     ErrorType,
     ExecutionError,
@@ -26,6 +28,7 @@ from app.models.workflow import (
     IntegrationNodeData,
     IteratorNodeData,
     KnowledgeNodeData,
+    LoopNodeData,
     MemoryNodeData,
     MergeNodeData,
     NoOpNodeData,
@@ -35,9 +38,11 @@ from app.models.workflow import (
     StartNodeData,
     SwitchNodeData,
     ToolNodeData,
+    ToolType,
     TriggerNodeData,
     WaitNodeData,
     Workflow,
+    WorkflowEdge,
     WorkflowNode,
 )
 from app.services.llm_services import call_llm_provider
@@ -108,7 +113,7 @@ def execute_workflow(workflow: Workflow) -> ExecutionResult:
         node_end = node_start + timedelta(milliseconds=10)
 
         try:
-            output = _execute_node(node, node_input, shared_data)
+            output = _execute_node(node, node_input, shared_data, node_map, workflow.edges, outbound_edges, inbound_edges)
             node_results[node_id] = NodeResult(
                 node_id=node_id,
                 status=NodeExecutionStatus.SUCCESS,
@@ -303,7 +308,15 @@ def _build_node_input(
     }
 
 
-def _execute_node(node: WorkflowNode, node_input: dict[str, Any], shared_data: dict[str, Any]) -> dict[str, Any]:
+def _execute_node(
+    node: WorkflowNode,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+    node_map: dict[str, WorkflowNode],
+    edges: list[WorkflowEdge] | None = None,
+    outbound_edges: dict[str, list[str]] | None = None,
+    inbound_edges: dict[str, list[str]] | None = None,
+) -> dict[str, Any]:
     data = node.data
 
     if data.type == NodeType.TRIGGER:
@@ -322,6 +335,8 @@ def _execute_node(node: WorkflowNode, node_input: dict[str, Any], shared_data: d
         return _execute_noop_node(data, node_input, shared_data)
     if data.type == NodeType.ITERATOR:
         return _execute_iterator_node(data, node_input, shared_data)
+    if data.type == NodeType.LOOP:
+        return _execute_loop_node(data, node_input, shared_data, node_map, edges, outbound_edges, inbound_edges)
     if data.type == NodeType.CODE:
         return _execute_code_node(data, node_input, shared_data)
     if data.type == NodeType.DATA_MAPPER:
@@ -331,7 +346,7 @@ def _execute_node(node: WorkflowNode, node_input: dict[str, Any], shared_data: d
     if data.type == NodeType.PROMPT:
         return _execute_prompt_node(data, node_input, shared_data)
     if data.type == NodeType.AGENT:
-        return _execute_agent_node(data, node_input, shared_data)
+        return _execute_agent_node(data, node_input, shared_data, node_map)
     if data.type == NodeType.TOOL:
         return _execute_tool_node(data, node_input, shared_data)
     if data.type == NodeType.INTEGRATION:
@@ -493,6 +508,69 @@ def _execute_iterator_node(
     }
 
 
+def _execute_loop_node(
+    data: LoopNodeData,
+    node_input: dict[str, Any],
+    shared_data: dict[str, Any],
+    node_map: dict[str, WorkflowNode],
+    edges: list[WorkflowEdge] | None = None,
+    outbound_edges: dict[str, list[str]] | None = None,
+    inbound_edges: dict[str, list[str]] | None = None,
+) -> dict[str, Any]:
+    items = _resolve_path(data.list_path, node_input, shared_data)
+    if items is None and not data.list_path:
+        items = _first_list_value(node_input["upstream"].values())
+
+    if items is None:
+        items = []
+
+    if not isinstance(items, list):
+        raise ValueError(f"Loop list path '{data.list_path}' did not resolve to a list.")
+
+    if len(items) > data.max_items:
+        raise ValueError(f"Loop received {len(items)} items, exceeding maxItems {data.max_items}.")
+
+    results = []
+    for index, item in enumerate(items):
+        shared_data[data.item_key] = item
+        shared_data[data.index_key] = index
+
+        iteration_outputs: dict[str, Any] = {}
+        for body_node_id in data.loop_body_node_ids:
+            if body_node_id not in node_map:
+                continue
+
+            body_node = node_map[body_node_id]
+            body_inbound = inbound_edges.get(body_node_id, []) if inbound_edges else []
+            body_node_input = _build_node_input(body_node, body_inbound, iteration_outputs, shared_data)
+
+            output = _execute_node(
+                body_node,
+                body_node_input,
+                shared_data,
+                node_map,
+                edges=edges,
+                outbound_edges=outbound_edges,
+                inbound_edges=inbound_edges,
+            )
+            iteration_outputs[body_node_id] = output
+
+        if data.loop_output_node_id and data.loop_output_node_id in iteration_outputs:
+            results.append(iteration_outputs[data.loop_output_node_id])
+        else:
+            results.append(iteration_outputs)
+
+    shared_data[data.output_key] = results
+    return {
+        "listPath": data.list_path,
+        "itemKey": data.item_key,
+        "indexKey": data.index_key,
+        "outputKey": data.output_key,
+        "count": len(items),
+        "results": results,
+    }
+
+
 def _execute_code_node(
     data: CodeNodeData,
     node_input: dict[str, Any],
@@ -589,22 +667,43 @@ def _execute_agent_node(
     data: AgentNodeData,
     node_input: dict[str, Any],
     shared_data: dict[str, Any],
+    node_map: dict[str, WorkflowNode]
 ) -> dict[str, Any]:
     prompt_context = _first_matching_value(node_input["upstream"].values(), "renderedPrompt")
     knowledge_context = _collect_field_values(node_input["upstream"].values(), "documents")
     
+    # 1. Build Tool Manifest (OpenAI format)
+    available_tools = []
+    for tool_id in data.allowed_tools:
+        if tool_id in node_map:
+            tool_node = node_map[tool_id]
+            if tool_node.data.type == NodeType.TOOL:
+                t_data = tool_node.data
+                available_tools.append({
+                    "type": "function",
+                    "function": {
+                        "name": t_data.action,
+                        "description": t_data.description or f"Executes tool: {t_data.action}",
+                        "parameters": t_data.parameters_schema or {
+                            "type": "object",
+                            "properties": {},
+                            "required": []
+                        }
+                    }
+                })
+
     # Construct conversation history
     messages = [
        {"role": "system", "content": f"{data.system_prompt}\n\nContext: {knowledge_context}"},
        {"role": "user", "content": prompt_context}  
     ]
 
-    # For now, default to OpenAI as it's the only supported provider in llm_services.py
-    # and we pass tools as empty since we need a registry to convert tool names to JSON schemas.
+    # 2. Call LLM with the Manifest
     response = call_llm_provider(
         provider="openai",
         model=data.model,
         messages=messages,
+        tools=available_tools if available_tools else None,
         temperature=data.temperature,
     )
 
@@ -635,16 +734,49 @@ def _execute_tool_node(
     shared_data: dict[str, Any],
 ) -> dict[str, Any]:
     agent_decision = shared_data.get("agentDecision", {})
+    tool_calls = agent_decision.get("toolCalls", [])
+
+    args = {}
+    if tool_calls:
+        args = json.loads(tool_calls[0].get("function", {}).get("arguments", "{}"))
+
+    result_data = None
+    status = "success"
+    
+    try: 
+        if data.tool_type == ToolType.HTTP:
+            endpoint_url = data.endpoint
+            if not endpoint_url:
+                raise ValueError(f"HTTP tool '{data.action}' requires an endpoint URL.")
+            
+            response = requests.request(
+                method="POST", 
+                url=endpoint_url,
+                json=args or node_input.get("upstream"),
+                timeout=(data.timeout_ms or 5000) / 1000.0
+            )
+            response.raise_for_status()
+            result_data = response.json()
+        
+        elif data.tool_type == ToolType.FUNCTION:
+            result_data = {"message": f"Simulated function call: {data.action}"}
+
+        else:
+            raise ValueError(f"Unsupported tool type: {data.tool_type}")
+        
+    except Exception as e:
+        status = "error"
+        result_data = {"error": str(e)}
+
     result = {
         "toolType": data.tool_type,
         "action": data.action,
-        "endpoint": data.endpoint,
-        "timeoutMs": data.timeout_ms,
-        "retries": data.retries,
-        "requestedBy": agent_decision.get("role"),
+        "status": status,
         "result": f"Executed {data.action} against configured tool.",
     }
     shared_data.setdefault("toolResults", []).append(result)
+    shared_data["lastToolResult"] = result_data
+
     return result
 
 
