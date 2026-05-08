@@ -33,7 +33,7 @@
       "id": "knowledge-policy",
       "position": {
         "x": 360.0,
-        "y": 90.0
+        "y": -113.5546875
       },
       "data": {
         "config": {
@@ -52,8 +52,8 @@
     {
       "id": "prompt-brief",
       "position": {
-        "x": 360.0,
-        "y": 330.0
+        "x": 390.15625,
+        "y": 420.46874999999994
       },
       "data": {
         "config": {
@@ -75,8 +75,8 @@
     {
       "id": "agent-support",
       "position": {
-        "x": 660.0,
-        "y": 220.0
+        "x": 617.78125,
+        "y": 186.828125
       },
       "data": {
         "config": {
@@ -90,7 +90,7 @@
         "model": "gpt-4.1-mini",
         "systemPrompt": "Resolve the task using the provided context and tools.",
         "temperature": 0.3,
-        "maxSteps": 6,
+        "maxSteps": 6323,
         "allowedTools": [
           "crm_lookup",
           "send_email"
@@ -100,8 +100,8 @@
     {
       "id": "tool-crm",
       "position": {
-        "x": 960.0,
-        "y": 90.0
+        "x": 922.3046875000001,
+        "y": -48.71875000000001
       },
       "data": {
         "config": {
@@ -122,8 +122,8 @@
     {
       "id": "app-google-docs",
       "position": {
-        "x": 1302.21875,
-        "y": -101.4921875
+        "x": 1397.2109375,
+        "y": -103.0
       },
       "data": {
         "config": {
@@ -147,8 +147,8 @@
     {
       "id": "memory-session",
       "position": {
-        "x": 960.0,
-        "y": 330.0
+        "x": 1020.3125,
+        "y": 399.35937499999994
       },
       "data": {
         "config": {
@@ -199,6 +199,23 @@
         "outputType": "chat",
         "destination": "customer-reply",
         "format": "markdown"
+      }
+    },
+    {
+      "id": "merge-1778258492332-r3v6ew",
+      "position": {
+        "x": 897.0,
+        "y": 710.0
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Merge",
+        "description": "",
+        "type": "merge",
+        "mergeStrategy": "wait_for_all"
       }
     }
   ],
@@ -299,7 +316,7 @@
     "description": "An AI agent workflow that retrieves knowledge, uses tools, connects third-party apps, and routes through human approval.",
     "version": 1,
     "createdAt": "2026-05-08T08:55:03.140000Z",
-    "updatedAt": "2026-05-08T15:28:07.401000Z",
+    "updatedAt": "2026-05-08T15:42:39.697000Z",
     "createdBy": "system",
     "tags": [
       "ai-agent",
