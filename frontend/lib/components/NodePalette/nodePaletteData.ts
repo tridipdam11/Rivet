@@ -40,7 +40,7 @@ export const nodePaletteItems: NodePaletteItem[] = [
     label: "IF",
     description: "Conditionally route execution between true and false branches.",
     icon: FaCodeBranch,
-    color: "#2563eb",
+    color: "#7c3aed",
   },
   {
     type: NodeType.SWITCH,
@@ -103,7 +103,7 @@ export const nodePaletteItems: NodePaletteItem[] = [
     label: "Agent",
     description: "Run an LLM-powered worker with tools, instructions, and multi-step reasoning.",
     icon: FaRobot,
-    color: "#1d4ed8",
+    color: "#6d28d9",
   },
   {
     type: NodeType.PROMPT,

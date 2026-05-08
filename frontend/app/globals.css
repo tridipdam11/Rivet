@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-retro-mono);
-  --font-mono: var(--font-retro-mono);
+  --font-sans: var(--font-sans-modern);
+  --font-mono: var(--font-mono-modern);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -44,55 +44,40 @@
 }
 
 :root {
-  --font-retro-mono: "Aptos Mono", "IBM Plex Mono", "Cascadia Mono", "Consolas", monospace;
-  --font-retro-display: Impact, Haettenschweiler, "Arial Black", sans-serif;
-  --radius: 0;
-  --background: #f6eee4;
-  --foreground: #181716;
-  --card: #fff8ee;
-  --card-foreground: #171716;
-  --popover: #fff8ee;
-  --popover-foreground: #171716;
-  --primary: #ffb400;
-  --primary-foreground: #171716;
-  --secondary: #dfe8f5;
-  --secondary-foreground: #171716;
-  --muted: #efe4d1;
-  --muted-foreground: #524b43;
-  --accent: #ffd85c;
-  --accent-foreground: #171716;
-  --destructive: #ff5a49;
-  --border: #111;
-  --input: #d3c7b5;
-  --ring: #1ba2d3;
-  --chart-1: #ffb400;
-  --chart-2: #1ba2d3;
-  --chart-3: #ff5a49;
-  --chart-4: #8fbcff;
-  --chart-5: #233548;
-  --sidebar: #fff4e2;
-  --sidebar-foreground: #171716;
-  --sidebar-primary: #ffb400;
-  --sidebar-primary-foreground: #171716;
-  --sidebar-accent: #dfe8f5;
-  --sidebar-accent-foreground: #171716;
-  --sidebar-border: #111;
-  --sidebar-ring: #1ba2d3;
-  --retro-panel: #fff3dd;
-  --retro-panel-dark: #e7dac3;
-  --retro-highlight: #fffdf7;
-  --retro-shadow: #9f927e;
-  --retro-shadow-deep: #1d1d1b;
-  --retro-screen: #fff9ea;
-  --retro-screen-dark: #d9e3f2;
-  --retro-warning: #ff5a49;
-  --retro-ink: #171716;
-  --retro-cyan: #1ba2d3;
-  --retro-amber: #ffb400;
-  --retro-red: #ff5a49;
-  --retro-blue: #4c8df6;
-  --retro-cream: #f8efe4;
-  --retro-grid: rgba(60, 49, 35, 0.1);
+  --font-sans-modern: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono-modern: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  --radius: 12px;
+  --background: #f6f8fb;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2ff;
+  --secondary-foreground: #1e293b;
+  --muted: #eef2f7;
+  --muted-foreground: #64748b;
+  --accent: #e0f2fe;
+  --accent-foreground: #075985;
+  --destructive: #ef4444;
+  --border: #dbe3ef;
+  --input: #cbd5e1;
+  --ring: #a78bfa;
+  --chart-1: #7c3aed;
+  --chart-2: #14b8a6;
+  --chart-3: #8b5cf6;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #1e293b;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #a78bfa;
 }
 
 .dark {
@@ -140,17 +125,13 @@
   body {
     @apply bg-background text-foreground;
     min-height: 100%;
-    font-family: var(--font-retro-mono), monospace;
+    font-family: var(--font-sans-modern);
     background:
-      radial-gradient(circle at 12% 12%, rgba(255, 180, 0, 0.18), transparent 18%),
-      radial-gradient(circle at 84% 18%, rgba(27, 162, 211, 0.16), transparent 20%),
-      radial-gradient(circle at 78% 78%, rgba(255, 90, 73, 0.12), transparent 18%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 18%),
-      linear-gradient(90deg, transparent 23px, var(--retro-grid) 24px, transparent 25px),
-      linear-gradient(transparent 23px, var(--retro-grid) 24px, transparent 25px),
-      linear-gradient(180deg, #fbf5ec 0%, #f2e7d9 100%);
-    background-size: auto, auto, auto, auto, 24px 24px, 24px 24px, auto;
-    color: var(--retro-ink);
+      radial-gradient(circle at 20% 10%, rgba(124, 58, 237, 0.08), transparent 28%),
+      radial-gradient(circle at 80% 0%, rgba(20, 184, 166, 0.08), transparent 26%),
+      linear-gradient(180deg, #fbfdff 0%, #f4f7fb 100%);
+    color: var(--foreground);
+    letter-spacing: 0;
   }
 }
 
@@ -159,10 +140,10 @@
   h2,
   h3,
   h4,
-  .retro-display {
-    font-family: var(--font-retro-display), monospace;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+  .display-title {
+    font-family: var(--font-sans-modern);
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   button,
@@ -174,168 +155,153 @@
 }
 
 @layer components {
-  .retro-window {
-    background: linear-gradient(180deg, var(--retro-panel) 0%, var(--retro-panel-dark) 100%);
-    border: 3px solid var(--retro-shadow-deep);
-    box-shadow:
-      inset 2px 2px 0 var(--retro-highlight),
-      inset -2px -2px 0 var(--retro-shadow),
-      8px 8px 0 rgba(23, 23, 22, 0.18);
+  .surface-window {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
   }
 
-  .retro-inset {
-    background: #c7c0ad;
-    border: 2px solid var(--retro-shadow-deep);
-    box-shadow:
-      inset 2px 2px 0 var(--retro-shadow),
-      inset -2px -2px 0 var(--retro-highlight);
+  .surface-inset {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
   }
 
-  .retro-button {
-    background: linear-gradient(180deg, #ffe485 0%, #ffb400 100%);
-    border: 3px solid var(--retro-shadow-deep);
-    box-shadow:
-      inset 2px 2px 0 var(--retro-highlight),
-      inset -2px -2px 0 var(--retro-shadow);
-    color: var(--retro-ink);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+  .primary-button {
+    background: var(--primary);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    box-shadow: 0 8px 18px rgba(124, 58, 237, 0.22);
+    color: var(--primary-foreground);
+    letter-spacing: 0;
   }
 
-  .retro-button:hover:not(:disabled) {
+  .primary-button:hover:not(:disabled) {
     filter: brightness(1.04);
   }
 
-  .retro-button:active:not(:disabled) {
-    box-shadow:
-      inset -2px -2px 0 var(--retro-highlight),
-      inset 2px 2px 0 var(--retro-shadow);
-    transform: translate(1px, 1px);
+  .primary-button:active:not(:disabled) {
+    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.18);
+    transform: translateY(1px);
   }
 
-  .retro-button-danger {
-    background: linear-gradient(180deg, #ff8a7a 0%, #ff5a49 100%);
-    color: #fff5e8;
+  .danger-button {
+    background: var(--destructive);
+    color: #fff;
   }
 
-  .retro-label {
-    font-family: var(--font-retro-display), monospace;
-    font-size: 10px;
+  .field-label {
+    font-family: var(--font-sans-modern);
+    font-size: 12px;
     line-height: 1.4;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0;
+    text-transform: none;
   }
 
-  .retro-app-shell {
+  .app-shell {
     position: relative;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 14%),
-      linear-gradient(90deg, rgba(23, 23, 22, 0.06) 0, rgba(23, 23, 22, 0.06) 1px, transparent 1px, transparent 112px),
-      linear-gradient(0deg, rgba(23, 23, 22, 0.06) 0, rgba(23, 23, 22, 0.06) 1px, transparent 1px, transparent 112px);
-    background-size: auto, 112px 112px, 112px 112px;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef4fb 100%);
   }
 
-  .retro-app-shell::before,
-  .retro-app-shell::after {
+  .app-shell::before,
+  .app-shell::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
   }
 
-  .retro-app-shell::before {
+  .app-shell::before {
     background:
-      radial-gradient(circle at 12% 10%, rgba(255, 180, 0, 0.14), transparent 16%),
-      radial-gradient(circle at 88% 20%, rgba(76, 141, 246, 0.16), transparent 18%),
-      radial-gradient(circle at 82% 78%, rgba(255, 90, 73, 0.12), transparent 16%);
-    opacity: 0.9;
+      radial-gradient(circle at 16% 8%, rgba(124, 58, 237, 0.08), transparent 22%),
+      radial-gradient(circle at 88% 18%, rgba(20, 184, 166, 0.08), transparent 20%);
+    opacity: 1;
   }
 
-  .retro-app-shell::after {
-    border: 2px solid rgba(36, 33, 26, 0.45);
-    box-shadow: inset 0 0 0 2px rgba(246, 241, 222, 0.2);
-    opacity: 0.35;
+  .app-shell::after {
+    display: none;
   }
 
-  .retro-badge {
+  .status-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    border: 2px solid var(--retro-shadow-deep);
-    background: linear-gradient(180deg, #fff8e8 0%, #ffe48b 100%);
-    box-shadow:
-      inset 2px 2px 0 var(--retro-highlight),
-      inset -2px -2px 0 var(--retro-shadow);
-    color: var(--retro-ink);
+    border: 1px solid #dbe3ef;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    color: #334155;
     padding: 6px 10px;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0;
   }
 
-  .retro-badge-dot {
+  .status-badge-dot {
     width: 9px;
     height: 9px;
-    border: 1px solid var(--retro-shadow-deep);
-    background: var(--retro-amber);
-    box-shadow: 0 0 0 1px rgba(255, 248, 232, 0.35);
+    border: 0;
+    border-radius: 999px;
+    background: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
   }
 
-  .retro-window-titlebar {
+  .surface-titlebar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     min-height: 48px;
     padding: 10px 14px;
-    border-bottom: 3px solid var(--retro-shadow-deep);
-    background: linear-gradient(90deg, var(--retro-amber) 0%, #ffd85c 100%);
+    border-bottom: 1px solid #e2e8f0;
+    background: #ffffff;
   }
 
-  .retro-window-titlebar.is-blue {
-    background: linear-gradient(90deg, #68c7ef 0%, #4c8df6 100%);
+  .surface-titlebar.is-violet {
+    background: #f5f3ff;
   }
 
-  .retro-window-titlebar.is-red {
-    background: linear-gradient(90deg, #ff7f6f 0%, #ff5a49 100%);
+  .surface-titlebar.is-red {
+    background: #fef2f2;
   }
 
-  .retro-window-titlebar.is-cream {
-    background: linear-gradient(90deg, #fff9ea 0%, #efe2ce 100%);
+  .surface-titlebar.is-cream {
+    background: #f8fafc;
   }
 
-  .retro-window-title {
-    font-family: var(--font-retro-display), sans-serif;
+  .surface-title {
+    font-family: var(--font-sans-modern);
     font-size: 18px;
-    line-height: 1;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
   }
 
-  .retro-window-dots {
+  .surface-window-dots {
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
 
-  .retro-window-dot {
+  .surface-window-dot {
     width: 12px;
     height: 12px;
-    border: 2px solid var(--retro-shadow-deep);
+    border: 1px solid #cbd5e1;
     border-radius: 999px;
-    background: #fff8e8;
+    background: #fff;
   }
 
-  .retro-window-dot.is-yellow {
-    background: var(--retro-amber);
+  .surface-window-dot.is-yellow {
+    background: #f59e0b;
   }
 
-  .retro-window-dot.is-blue {
-    background: var(--retro-cyan);
+  .surface-window-dot.is-violet {
+    background: #7c3aed;
   }
 
-  .retro-window-dot.is-red {
-    background: var(--retro-red);
+  .surface-window-dot.is-red {
+    background: #ef4444;
   }
 }

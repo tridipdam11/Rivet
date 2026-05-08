@@ -20,7 +20,7 @@ export const NodePalette: React.FC<NodePaletteProps> = ({
       <div className="node-palette-header">
         <div>
           <div className="node-palette-eyebrow">Agent Workflow Studio</div>
-          <h3 className="retro-display">{compact ? "Studio" : "Blocks"}</h3>
+          <h3 className="display-title">{compact ? "Studio" : "Blocks"}</h3>
           <p className="node-palette-subtitle">
             {compact
               ? "Use the canvas + button to open the draggable block picker."
@@ -39,14 +39,14 @@ export const NodePalette: React.FC<NodePaletteProps> = ({
               key={nodeType.type}
               className="node-palette-item"
               style={{
-                borderColor: '#24211a',
+                borderColor: '#e2e8f0',
               }}
             >
               <div
                 className="node-palette-item-icon"
                 style={{
                   color: nodeType.color,
-                  boxShadow: `inset 1px 1px 0 #fffdf2, inset -1px -1px 0 #7d7666, 0 0 0 2px ${nodeType.color}20`,
+                  backgroundColor: `${nodeType.color}12`,
                 }}
               >
                 <nodeType.icon aria-hidden="true" />

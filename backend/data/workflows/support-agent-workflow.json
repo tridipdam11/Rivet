@@ -114,6 +114,7 @@
         "toolType": "http",
         "endpoint": "https://api.example.com/customers/{id}",
         "action": "crm_lookup",
+        "parametersSchema": {},
         "timeoutMs": 20000,
         "retries": 2
       }
@@ -121,21 +122,21 @@
     {
       "id": "app-google-docs",
       "position": {
-        "x": 1260.0,
-        "y": 90.0
+        "x": 1302.21875,
+        "y": -101.4921875
       },
       "data": {
         "config": {
           "isValid": true,
           "errors": []
         },
-        "label": "Google Docs",
+        "label": "Google Sheets",
         "description": "Writes the approved support summary into a shared Google Docs operations log.",
         "type": "integration",
-        "appType": "google",
+        "appType": "youtube",
         "appName": "Google Docs",
-        "action": "append_summary",
-        "authStatus": "connected",
+        "action": "append_summaryq",
+        "authStatus": "expired",
         "mappedFields": [
           "customer_email",
           "refund_status",
@@ -192,57 +193,12 @@
           "isValid": true,
           "errors": []
         },
-        "label": "Customer reply",
+        "label": "Customer replywww",
         "description": "Delivers the final response back into the support channel.",
         "type": "output",
         "outputType": "chat",
         "destination": "customer-reply",
         "format": "markdown"
-      }
-    },
-    {
-      "id": "knowledge-1776175244980-e6z15q",
-      "position": {
-        "x": 984.7873994860811,
-        "y": 551.7828291882984
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Knowledge",
-        "description": "",
-        "type": "knowledge",
-        "sourceType": "vector_store",
-        "sourceName": "support-handbook",
-        "retrievalMode": "hybrid",
-        "topK": 5
-      }
-    },
-    {
-      "id": "integration-1776175247180-5ozof3",
-      "position": {
-        "x": 375.4769338971312,
-        "y": 543.0885411837315
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Integration",
-        "description": "",
-        "type": "integration",
-        "appType": "google",
-        "appName": "Google Docs",
-        "action": "append_summary",
-        "authStatus": "connected",
-        "mappedFields": [
-          "customer_email",
-          "refund_status",
-          "agent_summary"
-        ]
       }
     }
   ],
@@ -336,32 +292,14 @@
       "targetHandle": null,
       "type": "smoothstep",
       "data": null
-    },
-    {
-      "id": "edge-integration-1776175247180-5ozof3-knowledge-1776175244980-e6z15q",
-      "source": "integration-1776175247180-5ozof3",
-      "target": "knowledge-1776175244980-e6z15q",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
-    },
-    {
-      "id": "edge-knowledge-1776175244980-e6z15q-approval-refund",
-      "source": "knowledge-1776175244980-e6z15q",
-      "target": "approval-refund",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
     }
   ],
   "metadata": {
     "name": "Support Agent Workflow",
     "description": "An AI agent workflow that retrieves knowledge, uses tools, connects third-party apps, and routes through human approval.",
     "version": 1,
-    "createdAt": "2026-04-14T14:00:39.144000Z",
-    "updatedAt": "2026-04-14T14:01:57.219000Z",
+    "createdAt": "2026-05-08T08:55:03.140000Z",
+    "updatedAt": "2026-05-08T15:28:07.401000Z",
     "createdBy": "system",
     "tags": [
       "ai-agent",

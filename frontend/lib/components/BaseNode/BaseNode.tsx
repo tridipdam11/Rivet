@@ -16,7 +16,7 @@ import {
 const nodeAppearance: Record<NodeType, { badge: string; color: string }> = {
   [NodeType.TRIGGER]: { badge: 'TR', color: '#0f766e' },
   [NodeType.START]: { badge: 'ST', color: '#0f766e' },
-  [NodeType.IF]: { badge: 'IF', color: '#2563eb' },
+  [NodeType.IF]: { badge: 'IF', color: '#7c3aed' },
   [NodeType.SWITCH]: { badge: 'SW', color: '#7c3aed' },
   [NodeType.MERGE]: { badge: 'MG', color: '#b45309' },
   [NodeType.WAIT]: { badge: 'WT', color: '#ca8a04' },
@@ -24,7 +24,7 @@ const nodeAppearance: Record<NodeType, { badge: string; color: string }> = {
   [NodeType.ITERATOR]: { badge: 'IT', color: '#0891b2' },
   [NodeType.CODE]: { badge: 'CD', color: '#be123c' },
   [NodeType.DATA_MAPPER]: { badge: 'DM', color: '#4f46e5' },
-  [NodeType.AGENT]: { badge: 'AI', color: '#1d4ed8' },
+  [NodeType.AGENT]: { badge: 'AI', color: '#6d28d9' },
   [NodeType.PROMPT]: { badge: 'PR', color: '#7c3aed' },
   [NodeType.KNOWLEDGE]: { badge: 'KB', color: '#b45309' },
   [NodeType.INTEGRATION]: { badge: 'IN', color: '#0f766e' },

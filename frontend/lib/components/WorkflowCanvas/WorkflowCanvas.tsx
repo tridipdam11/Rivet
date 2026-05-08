@@ -27,7 +27,14 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { Workflow, WorkflowNode, WorkflowEdge, NodeType, NodeConfig } from '../../types/workflow';
+import {
+  NodeExecutionStatus,
+  Workflow,
+  WorkflowNode,
+  WorkflowEdge,
+  NodeType,
+  NodeConfig,
+} from '../../types/workflow';
 import { NodeFactory } from '../../services/NodeFactory';
 import { CustomNode } from './CustomNode';
 import { nodePaletteItems } from '../NodePalette/nodePaletteData';
@@ -35,9 +42,7 @@ import './WorkflowCanvas.css';
 
 type CanvasNodeData = WorkflowNode['data'] & {
   nodeType?: NodeType;
-  onUpdate?: (nodeId: string, updates: Partial<WorkflowNode['data']>) => void;
-  isEditing?: boolean;
-  onToggleEdit?: (nodeId: string) => void;
+  executionStatus?: NodeExecutionStatus;
 };
 
 const nodeTypes: NodeTypes = {
@@ -48,6 +53,9 @@ const nodeTypes: NodeTypes = {
   [NodeType.MERGE]: CustomNode,
   [NodeType.WAIT]: CustomNode,
   [NodeType.NOOP]: CustomNode,
+  [NodeType.ITERATOR]: CustomNode,
+  [NodeType.CODE]: CustomNode,
+  [NodeType.DATA_MAPPER]: CustomNode,
   [NodeType.AGENT]: CustomNode,
   [NodeType.PROMPT]: CustomNode,
   [NodeType.KNOWLEDGE]: CustomNode,
@@ -59,9 +67,8 @@ const nodeTypes: NodeTypes = {
 };
 
 const animatedEdgeStyle = {
-  stroke: '#233548',
-  strokeWidth: 3,
-  strokeDasharray: '12 8',
+  stroke: '#64748b',
+  strokeWidth: 2.5,
   strokeLinecap: 'round' as const,
 };
 
@@ -69,7 +76,9 @@ interface WorkflowCanvasProps {
   workflow: Workflow;
   onWorkflowChange?: (workflow: Workflow) => void;
   onNodeSelect?: (node: WorkflowNode | null) => void;
+  selectedNodeId?: string | null;
   isExecuting?: boolean;
+  nodeExecutionStatuses?: Record<string, NodeExecutionStatus>;
   className?: string;
 }
 
@@ -77,39 +86,32 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   workflow,
   onWorkflowChange,
   onNodeSelect,
+  selectedNodeId = null,
   isExecuting = false,
+  nodeExecutionStatuses = {},
   className = '',
 }) => {
   const nodeFactory = NodeFactory.getInstance();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [selectionMode, setSelectionMode] = useState<SelectionMode>(SelectionMode.Partial);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
-  const applyNodeDataUpdates = useCallback(
-    (node: WorkflowNode, updates: Partial<WorkflowNode['data']>): WorkflowNode =>
-      ({
-        ...node,
+  const mapWorkflowNodeToCanvasNode = useCallback(
+    (node: WorkflowNode): Node => {
+      return {
+        id: node.id,
+        type: node.data.type,
+        position: node.position,
+        selected: node.id === selectedNodeId,
         data: {
           ...node.data,
-          ...updates,
-        } as WorkflowNode['data'],
-      }) as WorkflowNode,
-    []
+          nodeType: node.data.type,
+          config: node.data.config,
+        } as CanvasNodeData,
+      };
+    },
+    [selectedNodeId]
   );
-
-  const mapWorkflowNodeToCanvasNode = useCallback((node: WorkflowNode): Node => {
-    return {
-      id: node.id,
-      type: node.data.type,
-      position: node.position,
-      data: {
-        ...node.data,
-        nodeType: node.data.type,
-        config: node.data.config,
-      } as CanvasNodeData,
-    };
-  }, []);
 
   const mapWorkflowEdgeToCanvasEdge = useCallback((edge: WorkflowEdge): Edge => {
     return {
@@ -122,7 +124,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       animated: true,
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: '#355248',
+        color: '#64748b',
       },
       style: animatedEdgeStyle,
       data: edge.data,
@@ -154,52 +156,22 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   useEffect(() => {
-    setNodes(workflow.nodes.map(mapWorkflowNodeToCanvasNode));
+    setNodes((currentNodes) =>
+      workflow.nodes.map((wfNode) => {
+        const mappedNode = mapWorkflowNodeToCanvasNode(wfNode);
+        const existingNode = currentNodes.find((n) => n.id === wfNode.id);
+
+        return {
+          ...mappedNode,
+          selected: mappedNode.selected || existingNode?.selected || false,
+        };
+      })
+    );
   }, [mapWorkflowNodeToCanvasNode, setNodes, workflow.nodes]);
 
   useEffect(() => {
     setEdges(workflow.edges.map(mapWorkflowEdgeToCanvasEdge));
   }, [mapWorkflowEdgeToCanvasEdge, setEdges, workflow.edges]);
-
-  useEffect(() => {
-    if (editingNodeId && !workflow.nodes.some((node) => node.id === editingNodeId)) {
-      setEditingNodeId(null);
-    }
-  }, [editingNodeId, workflow.nodes]);
-
-  const handleNodeDataUpdate = useCallback(
-    (nodeId: string, updates: Partial<WorkflowNode['data']>) => {
-      setNodes((currentNodes) =>
-        currentNodes.map((node) =>
-          node.id === nodeId
-            ? {
-                ...node,
-                data: {
-                  ...node.data,
-                  ...updates,
-                },
-              }
-            : node
-        )
-      );
-
-      if (!onWorkflowChange) {
-        return;
-      }
-
-      onWorkflowChange({
-        ...workflow,
-        nodes: workflow.nodes.map((node) =>
-          node.id === nodeId ? applyNodeDataUpdates(node, updates) : node
-        ),
-        metadata: {
-          ...workflow.metadata,
-          updatedAt: new Date(),
-        },
-      });
-    },
-    [applyNodeDataUpdates, onWorkflowChange, setNodes, workflow]
-  );
 
   const canvasNodes = useMemo(
     () =>
@@ -207,21 +179,15 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         ...node,
         data: {
           ...(node.data as CanvasNodeData),
-          isEditing: editingNodeId === node.id,
-          onUpdate: handleNodeDataUpdate,
-          onToggleEdit: (nodeId: string) => {
-            setEditingNodeId((current) => (current === nodeId ? null : nodeId));
-          },
+          executionStatus: nodeExecutionStatuses[node.id],
         },
       })),
-    [editingNodeId, handleNodeDataUpdate, nodes]
+    [nodeExecutionStatuses, nodes]
   );
 
   const handleNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
       onNodeSelect?.(toWorkflowNode(node));
-
-      setEditingNodeId((current) => (current === node.id ? current : null));
     },
     [onNodeSelect, toWorkflowNode]
   );
@@ -229,21 +195,19 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   const handleSelectionChange: OnSelectionChangeFunc = useCallback(
     ({ nodes: selectedNodes }) => {
       if (selectedNodes.length === 1) {
-        setEditingNodeId((current) =>
-          current === selectedNodes[0].id ? current : null
-        );
         onNodeSelect?.(toWorkflowNode(selectedNodes[0]));
         return;
       }
 
-      if (selectedNodes.length === 0 && editingNodeId) {
+      if (selectedNodes.length === 0 && selectedNodeId) {
+        // Skip nulling selection if we are just reacting to a workflow change
+        // React Flow might briefly report 0 nodes when we swap them
         return;
       }
 
-      setEditingNodeId(null);
       onNodeSelect?.(null);
     },
-    [editingNodeId, onNodeSelect, toWorkflowNode]
+    [onNodeSelect, selectedNodeId, toWorkflowNode]
   );
 
   const onConnect: OnConnect = useCallback(
@@ -256,7 +220,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             animated: true,
             markerEnd: {
               type: MarkerType.ArrowClosed,
-              color: '#355248',
+              color: '#64748b',
             },
             style: animatedEdgeStyle,
           },
@@ -313,8 +277,6 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
 
   const handleNodeDragStop: OnNodeDrag = useCallback(
     (_, draggedNode) => {
-      setEditingNodeId(null);
-
       if (!onWorkflowChange) {
         return;
       }
@@ -447,7 +409,6 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         onNodeDragStop={handleNodeDragStop}
         onSelectionChange={handleSelectionChange}
         onPaneClick={() => {
-          setEditingNodeId(null);
           onNodeSelect?.(null);
           setIsPickerOpen(false);
         }}
@@ -469,7 +430,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           animated: true,
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: '#355248',
+            color: '#64748b',
           },
           style: animatedEdgeStyle,
         }}
@@ -481,21 +442,20 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
               alignItems: 'center',
               flexWrap: 'wrap',
               gap: '6px',
-              padding: '10px',
-              border: '3px solid #24211a',
-              borderRadius: '18px',
-              background: 'linear-gradient(180deg, #fff8ea 0%, #ffe08c 100%)',
-              boxShadow: 'inset 1px 1px 0 #f6f1de, inset -1px -1px 0 #7d7666, 4px 4px 0 rgba(23,23,22,0.12)',
+              padding: '6px',
+              border: '1px solid rgba(203, 213, 225, 0.9)',
+              borderRadius: '14px',
+              background: 'rgba(255, 255, 255, 0.92)',
+              boxShadow: '0 12px 30px rgba(15, 23, 42, 0.1)',
+              backdropFilter: 'blur(14px)',
             }}
           >
             <div
               style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: '#4b3d0d',
-                marginRight: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#475569',
+                margin: '0 6px',
               }}
             >
               Selection
@@ -504,18 +464,13 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
               type="button"
               onClick={() => setSelectionMode(SelectionMode.Partial)}
               style={{
-                border: '3px solid #24211a',
-                borderRadius: '12px',
-                background:
-                  selectionMode === SelectionMode.Partial
-                    ? 'linear-gradient(180deg, #65c8ef 0%, #4c8df6 100%)'
-                    : 'linear-gradient(180deg, #fff8e8 0%, #f0dfc0 100%)',
-                color: selectionMode === SelectionMode.Partial ? '#fff8e8' : '#171716',
+                border: '1px solid transparent',
+                borderRadius: '10px',
+                background: selectionMode === SelectionMode.Partial ? '#7c3aed' : 'transparent',
+                color: selectionMode === SelectionMode.Partial ? '#fff' : '#475569',
                 padding: '8px 10px',
-                fontSize: '10px',
+                fontSize: '12px',
                 fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
                 cursor: 'pointer',
               }}
             >
@@ -525,18 +480,13 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
               type="button"
               onClick={() => setSelectionMode(SelectionMode.Full)}
               style={{
-                border: '3px solid #24211a',
-                borderRadius: '12px',
-                background:
-                  selectionMode === SelectionMode.Full
-                    ? 'linear-gradient(180deg, #ff8a7a 0%, #ff5a49 100%)'
-                    : 'linear-gradient(180deg, #fff8e8 0%, #f0dfc0 100%)',
-                color: selectionMode === SelectionMode.Full ? '#fff8e8' : '#171716',
+                border: '1px solid transparent',
+                borderRadius: '10px',
+                background: selectionMode === SelectionMode.Full ? '#7c3aed' : 'transparent',
+                color: selectionMode === SelectionMode.Full ? '#fff' : '#475569',
                 padding: '8px 10px',
-                fontSize: '10px',
+                fontSize: '12px',
                 fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
                 cursor: 'pointer',
               }}
             >
@@ -603,7 +553,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         </Panel>
         <Controls />
         <MiniMap />
-        <Background variant={BackgroundVariant.Dots} gap={24} size={2} color="rgba(35, 53, 72, 0.14)" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={1.5} color="rgba(100, 116, 139, 0.18)" />
       </ReactFlow>
     </div>
   );

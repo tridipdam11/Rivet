@@ -3,30 +3,16 @@
   width: 100%;
   position: relative;
   background:
-    radial-gradient(circle at top left, rgba(255, 180, 0, 0.12), transparent 20%),
-    radial-gradient(circle at 82% 22%, rgba(27, 162, 211, 0.14), transparent 18%),
-    radial-gradient(circle at 72% 82%, rgba(255, 90, 73, 0.1), transparent 14%),
-    linear-gradient(90deg, transparent 31px, rgba(36, 33, 26, 0.08) 32px, transparent 33px),
-    linear-gradient(transparent 31px, rgba(36, 33, 26, 0.08) 32px, transparent 33px),
-    linear-gradient(180deg, #fffaf0 0%, #f6ecde 100%);
-  background-size: auto, auto, auto, 32px 32px, 32px 32px, auto;
-  box-shadow:
-    inset 2px 2px 0 #fffdf7,
-    inset -2px -2px 0 #9f927e;
-}
-
-.workflow-canvas::before {
-  content: "";
-  position: absolute;
-  inset: 18px;
-  border: 2px dashed rgba(36, 33, 26, 0.22);
-  border-radius: 24px;
-  pointer-events: none;
+    radial-gradient(circle at 18% 12%, rgba(124, 58, 237, 0.08), transparent 24%),
+    radial-gradient(circle at 84% 16%, rgba(20, 184, 166, 0.08), transparent 22%),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(180deg, #f8fafc 0%, #eef4fb 100%);
+  background-size: auto, auto, 32px 32px, 32px 32px, auto;
 }
 
 .workflow-canvas .react-flow {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02));
+  background: transparent;
 }
 
 .workflow-canvas.executing {
@@ -35,43 +21,42 @@
 }
 
 .custom-node {
-  transition: transform 0.12s ease, filter 0.12s ease;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
 }
 
 .custom-node:hover {
-  transform: translate(-2px, -2px);
-  filter: brightness(1.03);
+  transform: translateY(-2px);
 }
 
 .custom-node.selected {
-  transform: translate(-2px, -2px);
+  transform: translateY(-2px);
 }
 
 .custom-node.invalid {
-  border-color: #71291f !important;
-  background-color: #d68b77;
+  border-color: #ef4444 !important;
+  background-color: #fef2f2;
 }
 
 .react-flow__controls {
   bottom: 20px;
   left: 20px;
-  border: 3px solid #24211a;
-  border-radius: 16px;
-  box-shadow:
-    inset 2px 2px 0 #f6f1de,
-    inset -2px -2px 0 #7d7666;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
   overflow: hidden;
 }
 
 .react-flow__minimap {
   bottom: 20px;
   right: 20px;
-  border: 3px solid #24211a !important;
-  border-radius: 18px !important;
-  background: #fff3dd !important;
-  box-shadow:
-    inset 2px 2px 0 #f6f1de,
-    inset -2px -2px 0 #7d7666;
+  border: 1px solid rgba(203, 213, 225, 0.9) !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(12px);
 }
 
 .react-flow__attribution {
@@ -79,44 +64,44 @@
 }
 
 .react-flow__handle {
-  border: 3px solid #f7f2df;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
   transition: all 0.2s ease;
 }
 
 .react-flow__handle:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
 }
 
 .react-flow__handle-connecting {
-  background: #d18e3b !important;
+  background: #7c3aed !important;
 }
 
 .react-flow__edge-path {
-  stroke: #233548;
-  stroke-width: 3;
-  stroke-dasharray: 12 8;
+  stroke: #64748b;
+  stroke-width: 2.5;
   stroke-linecap: round;
-  filter: drop-shadow(2px 2px 0 rgba(23, 23, 22, 0.15));
-  animation: retro-edge-flow 0.8s linear infinite;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #ffb400;
-  stroke-width: 4;
+  stroke: #7c3aed;
+  stroke-width: 3;
 }
 
 .react-flow__edge:hover .react-flow__edge-path {
-  stroke: #1ba2d3;
-  stroke-width: 4;
+  stroke: #14b8a6;
+  stroke-width: 3;
 }
 
 .react-flow__controls-button {
-  background: linear-gradient(180deg, #fff7e4 0%, #ffd766 100%) !important;
-  border-bottom: 3px solid #24211a !important;
-  color: #171716 !important;
-  box-shadow:
-    inset 1px 1px 0 #f6f1de,
-    inset -1px -1px 0 #7d7666;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #f8fafc !important;
+  color: #7c3aed !important;
 }
 
 .react-flow__controls-button svg {
@@ -124,7 +109,7 @@
 }
 
 .react-flow__background pattern circle {
-  fill: rgba(35, 53, 72, 0.2);
+  fill: rgba(100, 116, 139, 0.18);
 }
 
 .workflow-canvas .react-flow__panel {
@@ -149,39 +134,44 @@
 }
 
 .workflow-canvas-plus {
-  width: 52px;
-  height: 52px;
-  border: 3px solid #24211a;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #ffe485 0%, #ffb400 100%);
-  box-shadow:
-    inset 2px 2px 0 #fffdf7,
-    inset -2px -2px 0 #9f927e,
-    4px 4px 0 rgba(23, 23, 22, 0.16);
-  color: #171716;
-  font-size: 26px;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: #7c3aed;
+  box-shadow: 0 14px 28px rgba(124, 58, 237, 0.28);
+  color: #fff;
+  font-size: 22px;
   line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.workflow-canvas-plus:hover {
+  background: #6d28d9;
+  box-shadow: 0 18px 34px rgba(124, 58, 237, 0.32);
+  transform: translateY(-1px);
 }
 
 .workflow-canvas-picker {
   position: absolute;
   left: 0;
-  bottom: 68px;
+  bottom: 64px;
   z-index: 9;
   width: min(540px, calc(100vw - 80px));
   max-height: 420px;
   overflow: hidden;
-  border: 3px solid #24211a;
-  border-radius: 28px 28px 16px 16px;
-  background: linear-gradient(180deg, #fff7e7 0%, #efdfc1 100%);
-  box-shadow:
-    inset 2px 2px 0 #fffdf7,
-    inset -2px -2px 0 #9f927e,
-    10px 10px 0 rgba(23, 23, 22, 0.14);
+  border: 1px solid rgba(203, 213, 225, 0.92);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(16px);
 }
 
 .workflow-canvas-picker-header {
@@ -189,41 +179,44 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 16px;
-  border-bottom: 3px solid #24211a;
-  background: linear-gradient(90deg, #ff7f6f 0%, #ffb400 100%);
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
 }
 
 .workflow-canvas-picker-eyebrow {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .workflow-canvas-picker-title {
-  font-family: var(--font-retro-display), sans-serif;
-  font-size: 20px;
-  line-height: 1;
-  text-transform: uppercase;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .workflow-canvas-picker-close {
-  width: 34px;
-  height: 34px;
-  border: 3px solid #24211a;
-  border-radius: 999px;
-  background: #fff8ee;
-  color: #171716;
-  font-size: 12px;
-  text-transform: uppercase;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 14px;
   cursor: pointer;
+}
+
+.workflow-canvas-picker-close:hover {
+  background: #eef2f7;
+  color: #0f172a;
 }
 
 .workflow-canvas-picker-grid {
   display: grid;
   gap: 10px;
-  padding: 14px;
+  padding: 12px;
   max-height: 340px;
   overflow: auto;
 }
@@ -233,15 +226,22 @@
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 10px;
   align-items: start;
-  padding: 10px 12px;
-  border: 3px solid #24211a;
-  border-radius: 18px 18px 10px 10px;
-  background: linear-gradient(180deg, #fffbf1 0%, #f0dfc0 100%);
-  box-shadow:
-    inset 1px 1px 0 #fffdf7,
-    inset -1px -1px 0 #9f927e,
-    4px 4px 0 rgba(23, 23, 22, 0.1);
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   cursor: grab;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.workflow-canvas-picker-item:hover {
+  border-color: #ddd6fe;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.09);
+  transform: translateY(-1px);
 }
 
 .workflow-canvas-picker-badge {
@@ -250,9 +250,9 @@
   justify-content: center;
   width: 42px;
   height: 42px;
-  border: 3px solid #24211a;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  background: #fff8ee;
+  background: #f8fafc;
   font-size: 16px;
 }
 
@@ -261,26 +261,14 @@
 }
 
 .workflow-canvas-picker-label {
-  font-size: 12px;
+  color: #0f172a;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #171716;
 }
 
 .workflow-canvas-picker-description {
   margin-top: 4px;
-  font-size: 11px;
+  color: #64748b;
+  font-size: 12px;
   line-height: 1.45;
-  color: #4a443b;
-}
-
-@keyframes retro-edge-flow {
-  from {
-    stroke-dashoffset: 18;
-  }
-
-  to {
-    stroke-dashoffset: 0;
-  }
 }
