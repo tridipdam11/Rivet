@@ -127,6 +127,7 @@ def execute_workflow(workflow: Workflow) -> ExecutionResult:
             node_outputs[node_id] = output
             executed_nodes.append(node_id)
         except Exception as exc:
+            print(f"Node {node_id} failed: {str(exc)}")
             node_error = NodeError(
                 type=NodeErrorType.DATA_TRANSFORMATION_FAILED,
                 message=str(exc),
@@ -699,9 +700,11 @@ def _execute_agent_node(
     ]
 
     # 2. Call LLM with the Manifest
+    provider = "openai" if data.model and (data.model.startswith("gpt") or data.model.startswith("o1")) else "gemini"
+
     response = call_llm_provider(
-        provider="openai",
-        model=data.model,
+        provider=provider,
+        model=data.model or "gemini-2.5-flash",
         messages=messages,
         tools=available_tools if available_tools else None,
         temperature=data.temperature,

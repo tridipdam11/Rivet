@@ -1,7 +1,8 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
-
 from app.api.routes import health, workflows
-
 
 app = FastAPI(
     title="Rivet API",

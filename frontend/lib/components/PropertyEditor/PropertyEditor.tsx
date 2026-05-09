@@ -34,18 +34,20 @@ import {
   TriggerSource,
   WaitNodeData,
   WorkflowNode,
+  NodeResult,
 } from "../../types/workflow";
 
 interface PropertyEditorProps {
   node: WorkflowNode;
   onUpdate: (nodeId: string, updates: Partial<WorkflowNode["data"]>) => void;
+  result?: NodeResult;
 }
 
 const fieldClassName =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[13px] text-slate-900 shadow-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100";
 const labelClassName = "field-label text-[11px] font-bold uppercase tracking-normal text-slate-500";
 
-export const PropertyEditor: React.FC<PropertyEditorProps> = ({ node, onUpdate }) => {
+export const PropertyEditor: React.FC<PropertyEditorProps> = ({ node, onUpdate, result }) => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -58,7 +60,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({ node, onUpdate }
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <section className="space-y-3">
         <TextField
           label="Label"
@@ -71,9 +73,61 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({ node, onUpdate }
           name="description"
           value={node.data.description || ""}
           onChange={handleChange}
-          rows={3}
+          rows={2}
         />
       </section>
+
+      {result && (
+        <section className="rounded-xl border border-violet-200 bg-violet-50/30 shadow-sm overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-3 border-b border-violet-100 bg-violet-50/50">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-violet-600">
+              Execution Result
+            </div>
+            <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              result.status === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+            }`}>
+              {result.status.toUpperCase()}
+            </div>
+          </div>
+          
+          <div className="p-3 space-y-4">
+             {result.error && (
+               <div className="text-[12px] text-red-600 font-medium bg-red-50 p-2.5 rounded-lg border border-red-100">
+                 {result.error.message}
+               </div>
+             )}
+             
+             {result.output && (
+               <div className="space-y-2">
+                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Output Content</div>
+                 <div className="text-[13px] text-slate-700 bg-white p-3 rounded-lg border border-violet-100 leading-relaxed whitespace-pre-wrap font-sans shadow-inner">
+                   {typeof result.output === 'string' 
+                     ? result.output 
+                     : typeof ((result.output as any).content ?? (result.output as any).result) === 'string'
+                       ? ((result.output as any).content ?? (result.output as any).result)
+                       : JSON.stringify((result.output as any).content ?? (result.output as any).result ?? result.output, null, 2)}
+                 </div>
+               </div>
+             )}
+
+             {result.output?.toolCalls && result.output.toolCalls.length > 0 && (
+               <div className="space-y-2">
+                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Tool Calls</div>
+                 <div className="space-y-2">
+                   {result.output.toolCalls.map((call: any, idx: number) => (
+                     <div key={idx} className="text-[11px] font-mono bg-slate-900 text-slate-300 p-2.5 rounded-lg border border-slate-700 shadow-sm overflow-x-auto">
+                       <span className="text-violet-400">{call.function?.name}</span>
+                       <span className="text-slate-500">(</span>
+                       <span className="text-amber-200">{call.function?.arguments}</span>
+                       <span className="text-slate-500">)</span>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
+          </div>
+        </section>
+      )}
 
       <section className="space-y-4 border-t border-slate-200 pt-4">
         <div>
@@ -345,24 +399,49 @@ const DataMapperEditor: React.FC<{ data: DataMapperNodeData; onChange: (f: strin
       onChange={(e) => onChange("mode", e.target.value)}
     />
     <TextField label="Variable Key" value={data.variableKey ?? ""} onChange={(e) => onChange("variableKey", e.target.value)} placeholder="customerEmail" />
-    <TextField label="Source Path" value={data.sourcePath ?? ""} onChange={(e) => onChange("sourcePath", e.target.value)} placeholder="sharedData.trigger.eventName" />
-    <TextAreaField
-      label="Mappings"
-      value={data.mappings.map((mapping) => `${mapping.source}:${mapping.target}`).join(", ")}
-      onChange={(e) =>
-        onChange(
-          "mappings",
-          parseList(e.target.value)
-            .map((item) => {
-              const [source, target] = item.split(":").map((part) => part.trim());
-              return { source, target };
-            })
-            .filter((mapping) => mapping.source && mapping.target)
-        )
-      }
-      placeholder="sharedData.trigger.eventName:event.name"
-      rows={4}
-    />
+    
+    {data.mode === DataMapperMode.SET ? (
+      <TextAreaField 
+        label="Value (JSON or String)" 
+        value={typeof data.value === 'string' ? data.value : JSON.stringify(data.value, null, 2)} 
+        onChange={(e) => {
+          const val = e.target.value;
+          try {
+            // Try to parse as JSON if it looks like an object/array, otherwise treat as string
+            if ((val.startsWith('{') && val.endsWith('}')) || (val.startsWith('[') && val.endsWith(']'))) {
+              onChange("value", JSON.parse(val));
+            } else {
+              onChange("value", val);
+            }
+          } catch {
+            onChange("value", val);
+          }
+        }} 
+        rows={4}
+        placeholder="Enter a string or JSON object"
+      />
+    ) : (
+      <>
+        <TextField label="Source Path" value={data.sourcePath ?? ""} onChange={(e) => onChange("sourcePath", e.target.value)} placeholder="sharedData.trigger.eventName" />
+        <TextAreaField
+          label="Mappings"
+          value={data.mappings.map((mapping) => `${mapping.source}:${mapping.target}`).join(", ")}
+          onChange={(e) =>
+            onChange(
+              "mappings",
+              parseList(e.target.value)
+                .map((item) => {
+                  const [source, target] = item.split(":").map((part) => part.trim());
+                  return { source, target };
+                })
+                .filter((mapping) => mapping.source && mapping.target)
+            )
+          }
+          placeholder="sharedData.trigger.eventName:event.name"
+          rows={4}
+        />
+      </>
+    )}
   </div>
 );
 

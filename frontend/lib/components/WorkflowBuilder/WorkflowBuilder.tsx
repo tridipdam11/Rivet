@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Play, Save } from "lucide-react";
+import { Play, Save, Trash2, Eraser } from "lucide-react";
 import { PropertyEditor } from "@/lib/components/PropertyEditor/PropertyEditor";
 import { WorkflowCanvas } from "@/lib/components/WorkflowCanvas/WorkflowCanvas";
 import { executeWorkflow, loadWorkflow, saveWorkflow } from "@/lib/services/workflowApi";
@@ -199,6 +199,41 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     }
   }, [workflow]);
 
+  const handleClearCanvas = useCallback(() => {
+    if (confirm("Are you sure you want to clear the canvas? This will remove all nodes and edges.")) {
+      const updatedWorkflow: Workflow = {
+        ...workflow,
+        nodes: [],
+        edges: [],
+        metadata: {
+          ...workflow.metadata,
+          updatedAt: new Date(),
+        },
+      };
+      handleWorkflowChange(updatedWorkflow);
+      setSelectedNodeId(null);
+    }
+  }, [handleWorkflowChange, workflow]);
+
+  const handleDeleteNode = useCallback(() => {
+    if (!selectedNodeId) return;
+
+    const updatedWorkflow: Workflow = {
+      ...workflow,
+      nodes: workflow.nodes.filter((node) => node.id !== selectedNodeId),
+      edges: workflow.edges.filter(
+        (edge) => edge.source !== selectedNodeId && edge.target !== selectedNodeId
+      ),
+      metadata: {
+        ...workflow.metadata,
+        updatedAt: new Date(),
+      },
+    };
+
+    handleWorkflowChange(updatedWorkflow);
+    setSelectedNodeId(null);
+  }, [handleWorkflowChange, selectedNodeId, workflow]);
+
   return (
     <div className="app-shell flex h-screen w-screen flex-col overflow-hidden">
       <header className="relative z-10 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm">
@@ -210,6 +245,27 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleClearCanvas}
+            disabled={isLoading || isSaving || isExecuting || workflow.nodes.length === 0}
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-bold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            title="Clear all nodes and edges"
+          >
+            <Eraser size={16} aria-hidden="true" />
+            Clear
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteNode}
+            disabled={isLoading || isSaving || isExecuting || !selectedNodeId}
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-bold text-red-600 shadow-sm hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+            title="Delete selected node"
+          >
+            <Trash2 size={16} aria-hidden="true" />
+            Delete
+          </button>
+          <div className="mx-1 h-6 w-px bg-slate-200" />
           <button
             type="button"
             onClick={handleSave}
@@ -243,17 +299,21 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             className="h-full w-full"
           />
         </div>
-        <aside className="border-l border-slate-200 bg-white">
+        <aside className="border-l border-slate-200 bg-white h-full overflow-hidden">
           <div className="flex h-full flex-col">
-            <div className="border-b border-slate-200 px-4 py-3">
+            <div className="shrink-0 border-b border-slate-200 px-4 py-3">
               <div className="text-[13px] font-bold text-slate-950">Properties</div>
               <div className="mt-1 text-[12px] text-slate-500">
                 {selectedNode ? selectedNode.data.type.replace(/_/g, " ") : "Select a node"}
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-auto p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar p-4">
               {selectedNode ? (
-                <PropertyEditor node={selectedNode} onUpdate={handleNodeUpdate} />
+                <PropertyEditor
+                  node={selectedNode}
+                  onUpdate={handleNodeUpdate}
+                  result={executionResult?.nodeResults[selectedNode.id]}
+                />
               ) : (
                 <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-[13px] leading-5 text-slate-500">
                   Select a workflow node to configure labels, prompts, agents, and tools.
@@ -261,7 +321,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
               )}
             </div>
             {executionResult ? (
-              <div className="border-t border-slate-200 px-4 py-3 text-[12px] text-slate-600">
+              <div className="shrink-0 border-t border-slate-200 px-4 py-3 text-[12px] text-slate-600 bg-slate-50/30">
                 Last execution: <span className="font-bold">{executionResult.status}</span>
                 {executionResult.duration ? ` · ${executionResult.duration}ms` : ""}
               </div>

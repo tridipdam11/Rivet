@@ -565,7 +565,7 @@ export class NodeFactory {
         ...this.createBaseNodeData(NodeType.AGENT, options),
         type: NodeType.AGENT,
         role: 'Support agent',
-        model: 'gpt-4.1-mini',
+        model: 'gemini-2.5-flash',
         systemPrompt: 'Resolve the task using the provided context and tools.',
         temperature: 0.3,
         maxSteps: 6,

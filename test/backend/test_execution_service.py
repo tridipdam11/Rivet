@@ -245,8 +245,58 @@ class ExecutionServiceTests(unittest.TestCase):
         # Verify call_llm_provider was called with correct parameters
         mock_call_llm.assert_called_once()
         args, kwargs = mock_call_llm.call_args
+        self.assertEqual(kwargs["provider"], "openai")
         self.assertEqual(kwargs["model"], "gpt-4o")
         self.assertEqual(kwargs["temperature"], 0.7)
+
+    @patch("app.services.execution_service.call_llm_provider")
+    def test_execute_workflow_with_gemini_agent(self, mock_call_llm) -> None:
+        mock_call_llm.return_value = LLMResponse(
+            content="Gemini response",
+            tool_calls=[],
+            usage={"total_tokens": 5},
+            raw_response={}
+        )
+
+        payload = build_workflow_payload()
+        payload["nodes"] = [
+            {
+                "id": "start",
+                "position": {"x": 0, "y": 0},
+                "data": {
+                    "type": "start",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Start",
+                    "entry_label": "Start Here",
+                },
+            },
+            {
+                "id": "agent-gemini",
+                "position": {"x": 200, "y": 0},
+                "data": {
+                    "type": "agent",
+                    "config": {"isValid": True, "errors": []},
+                    "label": "Gemini Agent",
+                    "role": "assistant",
+                    "model": "gemini-2.5-flash",
+                    "system_prompt": "Prompt",
+                    "temperature": 0.5,
+                    "max_steps": 3,
+                    "allowed_tools": [],
+                },
+            },
+        ]
+        payload["edges"] = [
+            {"id": "e1", "source": "start", "target": "agent-gemini"},
+        ]
+        workflow = Workflow.model_validate(payload)
+
+        execute_workflow(workflow)
+
+        mock_call_llm.assert_called_once()
+        args, kwargs = mock_call_llm.call_args
+        self.assertEqual(kwargs["provider"], "gemini")
+        self.assertEqual(kwargs["model"], "gemini-2.5-flash")
 
 
 if __name__ == "__main__":

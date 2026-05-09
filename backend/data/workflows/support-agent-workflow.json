@@ -3,198 +3,61 @@
   "name": "Support Agent Workflow",
   "nodes": [
     {
-      "id": "trigger-inbound",
+      "id": "prompt-1778321863224-5tjue7",
       "position": {
-        "x": 80.0,
-        "y": 220.0
+        "x": 482.5,
+        "y": 177.0
       },
       "data": {
         "config": {
           "isValid": true,
           "errors": []
         },
-        "label": "Inbound request",
-        "description": "Starts when a new support conversation arrives.",
-        "type": "trigger",
-        "triggerSource": "chat",
-        "eventName": "new.customer.message",
-        "schedule": null,
-        "filters": [
-          {
-            "id": "trigger-inbound-filter-1",
-            "field": "priority",
-            "operator": "equals",
-            "value": "high"
-          }
-        ]
-      }
-    },
-    {
-      "id": "knowledge-policy",
-      "position": {
-        "x": 360.0,
-        "y": -113.5546875
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Policy knowledge",
-        "description": "Searches refund rules and internal support playbooks.",
-        "type": "knowledge",
-        "sourceType": "vector_store",
-        "sourceName": "support-handbook",
-        "retrievalMode": "hybrid",
-        "topK": 5
-      }
-    },
-    {
-      "id": "prompt-brief",
-      "position": {
-        "x": 390.15625,
-        "y": 420.46874999999994
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Prompt brief",
-        "description": "Builds the structured brief for the support agent.",
+        "label": "Format Analysis Request",
+        "description": "",
         "type": "prompt",
-        "promptTemplate": "Summarize the customer issue, propose a next action, and decide whether escalation is needed.",
+        "promptTemplate": "Analyze the following message from a customer and determine if they are happy, angry, or just asking a question.\nMessage: {customer_message}",
         "inputVariables": [
-          "customer_message",
-          "customer_profile",
-          "conversation_history"
+          "customer_message"
         ],
-        "outputKey": "agent_brief"
+        "outputKey": "rendered_prompt"
       }
     },
     {
-      "id": "agent-support",
+      "id": "agent-1778321973944-axw8fc",
       "position": {
-        "x": 617.78125,
-        "y": 186.828125
+        "x": 662.0,
+        "y": 305.0
       },
       "data": {
         "config": {
           "isValid": true,
           "errors": []
         },
-        "label": "Support agent",
-        "description": "Decides whether to answer directly, fetch data, or escalate.",
+        "label": "Sentiment & Response Agent",
+        "description": "",
         "type": "agent",
         "role": "Support agent",
-        "model": "gpt-4.1-mini",
-        "systemPrompt": "Resolve the task using the provided context and tools.",
-        "temperature": 0.3,
-        "maxSteps": 6323,
-        "allowedTools": [
-          "crm_lookup",
-          "send_email"
-        ]
+        "model": "gemini-2.5-flash",
+        "systemPrompt": "You are an expert customer support agent. Identify the sentiment and write a 1-sentence draft reply.",
+        "temperature": 0.7,
+        "maxSteps": 1,
+        "allowedTools": []
       }
     },
     {
-      "id": "tool-crm",
+      "id": "output-1778322057368-plqtmp",
       "position": {
-        "x": 922.3046875000001,
-        "y": -48.71875000000001
+        "x": 798.5,
+        "y": 148.5
       },
       "data": {
         "config": {
           "isValid": true,
           "errors": []
         },
-        "label": "CRM lookup",
-        "description": "Pulls account tier, order history, and refund eligibility.",
-        "type": "tool",
-        "toolType": "http",
-        "endpoint": "https://api.example.com/customers/{id}",
-        "action": "crm_lookup",
-        "parametersSchema": {},
-        "timeoutMs": 20000,
-        "retries": 2
-      }
-    },
-    {
-      "id": "app-google-docs",
-      "position": {
-        "x": 1397.2109375,
-        "y": -103.0
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Google Sheets",
-        "description": "Writes the approved support summary into a shared Google Docs operations log.",
-        "type": "integration",
-        "appType": "youtube",
-        "appName": "Google Docs",
-        "action": "append_summaryq",
-        "authStatus": "expired",
-        "mappedFields": [
-          "customer_email",
-          "refund_status",
-          "agent_summary"
-        ]
-      }
-    },
-    {
-      "id": "memory-session",
-      "position": {
-        "x": 1020.3125,
-        "y": 399.35937499999994
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Session memory",
-        "description": "Stores the running conversation summary and prior actions.",
-        "type": "memory",
-        "memoryScope": "session",
-        "strategy": "summarize",
-        "maxItems": 20
-      }
-    },
-    {
-      "id": "approval-refund",
-      "position": {
-        "x": 1560.0,
-        "y": 220.0
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Refund approval",
-        "description": "Requires a human check before high-value refunds are sent.",
-        "type": "approval",
-        "approverType": "human",
-        "instructions": "Approve refunds over $500 before the agent sends the final response.",
-        "timeoutMinutes": 30
-      }
-    },
-    {
-      "id": "output-reply",
-      "position": {
-        "x": 1860.0,
-        "y": 220.0
-      },
-      "data": {
-        "config": {
-          "isValid": true,
-          "errors": []
-        },
-        "label": "Customer replywww",
-        "description": "Delivers the final response back into the support channel.",
+        "label": "Final Result",
+        "description": "",
         "type": "output",
         "outputType": "chat",
         "destination": "customer-reply",
@@ -202,109 +65,92 @@
       }
     },
     {
-      "id": "merge-1778258492332-r3v6ew",
+      "id": "data_mapper-1778322325576-moyxx3",
       "position": {
-        "x": 897.0,
-        "y": 710.0
+        "x": 403.0,
+        "y": 325.0
       },
       "data": {
         "config": {
           "isValid": true,
           "errors": []
         },
-        "label": "Merge",
+        "label": "Mock Customer",
         "description": "",
-        "type": "merge",
-        "mergeStrategy": "wait_for_all"
+        "type": "data_mapper",
+        "mode": "set",
+        "variableKey": "customer_message",
+        "sourcePath": null,
+        "value": "Where is my order? It was supposed to be here yesterday!",
+        "mappings": [
+          {
+            "source": "sharedData.trigger.eventName",
+            "target": "event.name",
+            "default": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "trigger-1778322437680-7mta1i",
+      "position": {
+        "x": 255.5,
+        "y": 198.0
+      },
+      "data": {
+        "config": {
+          "isValid": true,
+          "errors": []
+        },
+        "label": "Inbound Customer Message",
+        "description": "",
+        "type": "trigger",
+        "triggerSource": "chat",
+        "eventName": "new_support_ticket",
+        "schedule": null,
+        "filters": [
+          {
+            "id": "trigger-1778322437680-7mta1i-filter-1",
+            "field": "priority",
+            "operator": "equals",
+            "value": "high"
+          }
+        ]
       }
     }
   ],
   "edges": [
     {
-      "id": "edge-trigger-inbound-knowledge-policy",
-      "source": "trigger-inbound",
-      "target": "knowledge-policy",
+      "id": "edge-prompt-1778321863224-5tjue7-agent-1778321973944-axw8fc",
+      "source": "prompt-1778321863224-5tjue7",
+      "target": "agent-1778321973944-axw8fc",
       "sourceHandle": null,
       "targetHandle": null,
       "type": "smoothstep",
       "data": null
     },
     {
-      "id": "edge-trigger-inbound-prompt-brief",
-      "source": "trigger-inbound",
-      "target": "prompt-brief",
+      "id": "edge-agent-1778321973944-axw8fc-output-1778322057368-plqtmp",
+      "source": "agent-1778321973944-axw8fc",
+      "target": "output-1778322057368-plqtmp",
       "sourceHandle": null,
       "targetHandle": null,
       "type": "smoothstep",
       "data": null
     },
     {
-      "id": "edge-knowledge-policy-agent-support",
-      "source": "knowledge-policy",
-      "target": "agent-support",
+      "id": "edge-data_mapper-1778322325576-moyxx3-prompt-1778321863224-5tjue7",
+      "source": "data_mapper-1778322325576-moyxx3",
+      "target": "prompt-1778321863224-5tjue7",
       "sourceHandle": null,
       "targetHandle": null,
       "type": "smoothstep",
       "data": null
     },
     {
-      "id": "edge-prompt-brief-agent-support",
-      "source": "prompt-brief",
-      "target": "agent-support",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
-    },
-    {
-      "id": "edge-agent-support-tool-crm",
-      "source": "agent-support",
-      "target": "tool-crm",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
-    },
-    {
-      "id": "edge-agent-support-memory-session",
-      "source": "agent-support",
-      "target": "memory-session",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
-    },
-    {
-      "id": "edge-tool-crm-app-google-docs",
-      "source": "tool-crm",
-      "target": "app-google-docs",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
-    },
-    {
-      "id": "edge-app-google-docs-approval-refund",
-      "source": "app-google-docs",
-      "target": "approval-refund",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
-    },
-    {
-      "id": "edge-memory-session-approval-refund",
-      "source": "memory-session",
-      "target": "approval-refund",
-      "sourceHandle": null,
-      "targetHandle": null,
-      "type": "smoothstep",
-      "data": null
-    },
-    {
-      "id": "edge-approval-refund-output-reply",
-      "source": "approval-refund",
-      "target": "output-reply",
+      "id": "edge-trigger-1778322437680-7mta1i-data_mapper-1778322325576-moyxx3",
+      "source": "trigger-1778322437680-7mta1i",
+      "target": "data_mapper-1778322325576-moyxx3",
       "sourceHandle": null,
       "targetHandle": null,
       "type": "smoothstep",
@@ -316,7 +162,7 @@
     "description": "An AI agent workflow that retrieves knowledge, uses tools, connects third-party apps, and routes through human approval.",
     "version": 1,
     "createdAt": "2026-05-08T08:55:03.140000Z",
-    "updatedAt": "2026-05-08T15:42:39.697000Z",
+    "updatedAt": "2026-05-09T10:30:34.976000Z",
     "createdBy": "system",
     "tags": [
       "ai-agent",
